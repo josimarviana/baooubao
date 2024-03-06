@@ -1,32 +1,37 @@
 package br.app.iftmparacatu.baoounao.domain.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.sql.Blob;
 import java.time.LocalDateTime;
 
 @Entity
+@Getter @Setter
 public class ProposalEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    Long id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     @Column(length = 100)
-    String title;
+    private String title;
     @Column
-    String description;
+    private String description;
     @Column
-    Integer likes;
+    private Integer likes;
     @Column(length = 100)
-    String situation;
+    private String situation;
     @Column
-    Boolean active;
+    private Boolean active;
     @Column
-    LocalDateTime createdAt;
+    private LocalDateTime createdAt;
     @Column(length = 100)
-    String url;
+    private String url;
     @Column
-    Blob photograpy;
+    private  Blob photograpy;
 
-    //Usuario usuario;
-    //Ciclo ciclo;
+    //Usuario usuario; Ciclo ciclo;
+
+
+
 }
