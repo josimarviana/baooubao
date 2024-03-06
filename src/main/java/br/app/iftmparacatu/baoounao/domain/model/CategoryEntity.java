@@ -5,12 +5,15 @@ import java.time.LocalDateTime;
 import jakarta.persistence.*;
 
 @Entity
-public class CycleEntity {
+public class CategoryEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-    @Column(length = 100)
+
+    @Column
     private String title;
+    @Column
+    private boolean active;
     @Column
     private LocalDateTime createdAt;
     @Column
