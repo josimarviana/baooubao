@@ -4,8 +4,10 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import lombok.Data;
 
 @Entity
+@Data
 public class SituationEntity {
     @Enumerated(EnumType.STRING)
     @Column(length = 20)

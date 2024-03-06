@@ -3,8 +3,10 @@ package br.app.iftmparacatu.baoounao.domain.model;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 @Entity
+@Data
 public class CycleEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
