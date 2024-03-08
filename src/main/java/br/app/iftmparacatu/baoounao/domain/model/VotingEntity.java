@@ -8,8 +8,9 @@ import java.time.LocalDateTime;
 public class VotingEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
     @JoinColumn
+    @ManyToMany
     private ProposalEntity proposalEntity;
     //private User user;
     @Column

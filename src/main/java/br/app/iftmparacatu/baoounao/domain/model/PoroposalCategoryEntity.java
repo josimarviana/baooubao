@@ -7,10 +7,12 @@ import java.time.LocalDateTime;
 public class PoroposalCategoryEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Integer id;
-
-    //private CategoryEntity categoryEntity;
+    private Long id;
     @JoinColumn
+    @ManyToMany
+    private CategoryEntity categoryEntity;
+    @JoinColumn
+    @ManyToMany
     private ProposalEntity proposalEntity;
     @Column
     private LocalDateTime createdAt;
