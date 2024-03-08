@@ -29,9 +29,7 @@ public class ProposalEntity {
     private String url;
     @Column
     private  Blob photograpy;
-
-    //Usuario usuario; Ciclo ciclo;
-
-
-
+    @Column(nullable = false)
+    @ManyToOne
+    private UserEntity userEntity;
 }
