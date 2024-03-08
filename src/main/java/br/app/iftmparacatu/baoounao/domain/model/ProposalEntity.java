@@ -32,4 +32,6 @@ public class ProposalEntity {
     @Column(nullable = false)
     @ManyToOne
     private UserEntity userEntity;
+    @ManyToOne
+    private CycleEntity cycleEntity;
 }
