@@ -9,10 +9,10 @@ public class VotingEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @JoinColumn
     @ManyToMany
     private ProposalEntity proposalEntity;
-    //private User user;
+    @ManyToMany
+    private UserEntity userEntity;
     @Column
     private LocalDateTime createdAt;
 }
