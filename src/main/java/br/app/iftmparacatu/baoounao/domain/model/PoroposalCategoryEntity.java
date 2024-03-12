@@ -8,11 +8,9 @@ public class PoroposalCategoryEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-    @JoinColumn
-    @ManyToMany
+    @ManyToOne
     private CategoryEntity categoryEntity;
-    @JoinColumn
-    @ManyToMany
+    @ManyToOne
     private ProposalEntity proposalEntity;
     @Column
     private LocalDateTime createdAt;
