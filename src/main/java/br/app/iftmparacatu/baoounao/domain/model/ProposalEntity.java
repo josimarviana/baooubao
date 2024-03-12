@@ -29,7 +29,7 @@ public class ProposalEntity {
     private String url;
     @Column
     private  Blob photograpy;
-    @Column(nullable = false)
+    @JoinColumn(name = "user_entity_id")
     @ManyToOne
     private UserEntity userEntity;
     @ManyToOne
