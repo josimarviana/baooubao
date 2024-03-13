@@ -4,13 +4,15 @@ import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 @Entity
-public class PoroposalCategoryEntity {
+public class ProposalCategoryEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @ManyToOne
+    @JoinColumn(name = "category_entity_id")
     private CategoryEntity categoryEntity;
     @ManyToOne
+    @JoinColumn(name = "proposal_entity_id")
     private ProposalEntity proposalEntity;
     @Column
     private LocalDateTime createdAt;
