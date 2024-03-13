@@ -1,0 +1,1 @@
+--INSERT INTO proposal_category_entity()
