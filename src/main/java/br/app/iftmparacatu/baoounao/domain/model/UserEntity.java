@@ -3,6 +3,7 @@ package br.app.iftmparacatu.baoounao.domain.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.antlr.v4.runtime.misc.NotNull;
 
 import java.time.LocalDate;
 
@@ -17,12 +18,14 @@ public class UserEntity {
     @Column(nullable = false)
     private String email;
     @Column(nullable = false)
-    private String tipe;
+    @Enumerated(value = EnumType.STRING)
+    private UserType type;
     @Column(nullable = false)
     private String password;
     @Column
     private Boolean active;
-    @Column
+    @Column(nullable = false)
+    @NotNull
     private LocalDate createdAt;
 
 }
