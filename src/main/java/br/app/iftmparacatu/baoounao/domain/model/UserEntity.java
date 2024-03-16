@@ -27,5 +27,6 @@ public class UserEntity {
     @Column(nullable = false)
     @NotNull
     private LocalDate createdAt;
-
+    @Column
+    private Boolean admin;
 }
