@@ -20,7 +20,7 @@ public class ProposalEntity {
     @Column
     private Integer likes;
     @Column(length = 100)
-    private String situation;
+    private SituationEntity situation;
     @Column
     private Boolean active;
     @Column
@@ -28,10 +28,12 @@ public class ProposalEntity {
     @Column(length = 100)
     private String url;
     @Column
+    @Lob
     private  Blob photograpy;
     @JoinColumn(name = "user_entity_id")
     @ManyToOne
     private UserEntity userEntity;
+    @JoinColumn(name = "cycle_entity_id")
     @ManyToOne
     private CycleEntity cycleEntity;
 }
