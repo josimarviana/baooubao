@@ -3,8 +3,8 @@ package br.app.iftmparacatu.baoounao.domain.model;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
-import lombok.NonNull;
 
 @Entity
 @Data
@@ -13,10 +13,10 @@ public class CycleEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(length = 100, nullable = false)
-    @NonNull
+    @NotNull
     private String title;
     @Column(nullable = false)
-    @NonNull
+    @NotNull
     private LocalDateTime createdAt;
     @Column
     private LocalDateTime finishedAt;

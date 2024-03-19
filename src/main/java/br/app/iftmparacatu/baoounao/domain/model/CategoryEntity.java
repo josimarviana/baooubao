@@ -3,8 +3,8 @@ package br.app.iftmparacatu.baoounao.domain.model;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
-import lombok.NonNull;
 @Entity
 @Data
 public class CategoryEntity {
@@ -16,7 +16,7 @@ public class CategoryEntity {
     @Column
     private boolean active;
     @Column(nullable = false)
-    @NonNull
+    @NotNull
     private LocalDateTime createdAt;
     @Column
     private LocalDateTime finishedAt;

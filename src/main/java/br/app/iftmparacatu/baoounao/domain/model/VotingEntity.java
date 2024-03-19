@@ -2,7 +2,7 @@ package br.app.iftmparacatu.baoounao.domain.model;
 
 
 import jakarta.persistence.*;
-import org.antlr.v4.runtime.misc.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDateTime;
 @Entity
