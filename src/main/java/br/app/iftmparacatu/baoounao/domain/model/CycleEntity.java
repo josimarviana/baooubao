@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import org.antlr.v4.runtime.misc.NotNull;
+import lombok.NonNull;
 
 @Entity
 @Data
@@ -13,10 +13,10 @@ public class CycleEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(length = 100, nullable = false)
-    @NotNull
+    @NonNull
     private String title;
     @Column(nullable = false)
-    @NotNull
+    @NonNull
     private LocalDateTime createdAt;
     @Column
     private LocalDateTime finishedAt;

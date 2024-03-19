@@ -2,8 +2,8 @@ package br.app.iftmparacatu.baoounao.domain.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
-import org.antlr.v4.runtime.misc.NotNull;
 
 import java.time.LocalDate;
 
@@ -25,7 +25,7 @@ public class UserEntity {
     @Column
     private Boolean active;
     @Column(nullable = false)
-    @NotNull
+    @NonNull
     private LocalDate createdAt;
     @Column
     private Boolean admin;

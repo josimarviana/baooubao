@@ -4,8 +4,7 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import org.antlr.v4.runtime.misc.NotNull;
-
+import lombok.NonNull;
 @Entity
 @Data
 public class CategoryEntity {
@@ -17,7 +16,7 @@ public class CategoryEntity {
     @Column
     private boolean active;
     @Column(nullable = false)
-    @NotNull
+    @NonNull
     private LocalDateTime createdAt;
     @Column
     private LocalDateTime finishedAt;
