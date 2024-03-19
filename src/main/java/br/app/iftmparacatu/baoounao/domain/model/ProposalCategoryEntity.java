@@ -14,7 +14,8 @@ public class ProposalCategoryEntity {
     @ManyToOne
     @JoinColumn(name = "proposal_entity_id")
     private ProposalEntity proposalEntity;
-    @Column
+    @Column(nullable = false)
+    @jakarta.validation.constraints.NotNull
     private LocalDateTime createdAt;
 
 }

@@ -3,9 +3,8 @@ package br.app.iftmparacatu.baoounao.domain.model;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
-import org.antlr.v4.runtime.misc.NotNull;
-
 @Entity
 @Data
 public class CategoryEntity {
