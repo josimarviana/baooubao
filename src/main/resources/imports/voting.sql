@@ -1,3 +1,3 @@
-INSERT INTO voting(user_entity_id,proposal_entity_id) VALUES(1,1);
-INSERT INTO voting(user_entity_id,proposal_entity_id) VALUES(1,2);
-INSERT INTO voting(user_entity_id,proposal_entity_id) VALUES(2,3);
+INSERT INTO voting_entity(user_entity_id,proposal_entity_id,created_at) VALUES(1,1,'2024-03-18');
+--INSERT INTO voting_entity(user_entity_id,proposal_entity_id,created_at) VALUES(1,2,'2024-03-18');
+--INSERT INTO voting_entity(user_entity_id,proposal_entity_id,created_at) VALUES(2,3,'2024-03-18');

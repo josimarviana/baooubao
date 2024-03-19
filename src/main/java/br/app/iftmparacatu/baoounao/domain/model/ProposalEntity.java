@@ -20,6 +20,7 @@ public class ProposalEntity {
     @Column
     private Integer likes;
     @Column(length = 100)
+    @Enumerated(value = EnumType.STRING)
     private SituationEntity situation;
     @Column
     private Boolean active;
