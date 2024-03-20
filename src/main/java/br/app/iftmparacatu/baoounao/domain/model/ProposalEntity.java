@@ -1,6 +1,7 @@
 package br.app.iftmparacatu.baoounao.domain.model;
 
 import jakarta.persistence.*;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,9 +10,11 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter @Setter
+@EqualsAndHashCode
 public class ProposalEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
     @Column(length = 100)
     private String title;
