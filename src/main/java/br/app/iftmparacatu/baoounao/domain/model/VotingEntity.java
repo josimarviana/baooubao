@@ -3,9 +3,11 @@ package br.app.iftmparacatu.baoounao.domain.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import lombok.Data;
 
 import java.time.LocalDateTime;
 @Entity
+@Data
 public class VotingEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
