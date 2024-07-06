@@ -35,4 +35,10 @@ public class ProposalController {
         } else throw new RuntimeException("Proposal de id " + proposalId + "não foi encontrada");
 
     }
+
+    @GetMapping("/filter/{text}")
+    public List<ProposalEntity> filterByDescriptionOrTitle (@PathVariable String text ){
+        return proposalRepository.findByTitleContainingOrDescriptionContaining(text,text);
+
+    }
 }
