@@ -1,5 +1,6 @@
 package br.app.iftmparacatu.baoounao.domain.model;
 
+import br.app.iftmparacatu.baoounao.domain.enums.Situation;
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -24,7 +25,7 @@ public class ProposalEntity {
     private Integer likes;
     @Column(length = 100)
     @Enumerated(value = EnumType.STRING)
-    private SituationEntity situation;
+    private Situation situation;
     @Column
     private Boolean active;
     @Column

@@ -34,6 +34,7 @@ public class ProposalController {
 
     }
 
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)//TODO: modificar a exceção quando usar o service
     public ResponseEntity<ProposalEntity> saveProposal (@RequestBody ProposalEntity proposalEntity ){
@@ -45,5 +46,12 @@ public class ProposalController {
         }
     }
 
+
+
+    @GetMapping("/filter/{text}")
+    public List<ProposalEntity> filterByDescriptionOrTitle (@PathVariable String text ){
+        return proposalRepository.findByTitleContainingOrDescriptionContaining(text,text);
+
+    }
 
 }
