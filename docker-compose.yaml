@@ -1,0 +1,20 @@
+version: '3'
+services:
+  mariadb:
+    image: 'mariadb:latest'
+    environment:
+      MYSQL_DATABASE: 'mydatabase'
+      MYSQL_ROOT_PASSWORD: 'verysecret'
+      MYSQL_PASSWORD: 'secret'
+      MYSQL_USER: 'myuser'
+    ports:
+      - '3307:3306'
+
+  jenkins:
+    image: jenkins/jenkins:lts
+    ports:
+      - '8080:8080'
+      - '50000:50000'
+    volumes:
+      - /home/ubuntu/jenkins_compose/jenkins_configuration:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
