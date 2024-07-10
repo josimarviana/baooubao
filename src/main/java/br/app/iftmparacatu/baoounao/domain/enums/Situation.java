@@ -1,6 +1,6 @@
-package br.app.iftmparacatu.baoounao.domain.model;
+package br.app.iftmparacatu.baoounao.domain.enums;
 
-public enum SituationEntity {
+public enum Situation {
     OPEN_FOR_VOTING,
     FORWARDED_TO_BOARD,
     APPROVED,
