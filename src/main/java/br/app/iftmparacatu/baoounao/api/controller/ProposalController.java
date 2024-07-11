@@ -48,8 +48,8 @@ public class ProposalController {
 
 
 
-    @GetMapping("/filter/{text}")
-    public List<ProposalEntity> filterByDescriptionOrTitle (@PathVariable String text ){
+    @GetMapping("/filter")
+    public List<ProposalEntity> filterByDescriptionOrTitle (@RequestParam(value = "contain", required = false) String text ){
         return proposalRepository.findByTitleContainingOrDescriptionContaining(text,text);
 
     }
