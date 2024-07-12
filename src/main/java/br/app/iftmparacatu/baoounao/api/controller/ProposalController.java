@@ -54,4 +54,10 @@ public class ProposalController {
 
     }
 
+    @GetMapping("/trending")
+    public List<ProposalEntity> trendingProposals (){
+        return proposalRepository.findTop3ByLikesGreaterThanOrderByLikesDesc(0);
+
+    }
+
 }
