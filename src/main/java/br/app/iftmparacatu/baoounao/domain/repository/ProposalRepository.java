@@ -10,7 +10,6 @@ import java.util.List;
 public interface ProposalRepository extends JpaRepository<ProposalEntity,Long> {
     List<ProposalEntity> findByDescriptionContaining(String text);
     List<ProposalEntity> findByTitleContainingOrDescriptionContaining(String text1,String text2);
-
     List<ProposalEntity> findTop3ByLikesGreaterThanOrderByLikesDesc(int likes);
 
 }
