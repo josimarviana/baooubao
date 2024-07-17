@@ -1,13 +1,17 @@
 package br.app.iftmparacatu.baoounao.domain.model;
 
+import br.app.iftmparacatu.baoounao.domain.enums.UserType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Getter @Setter
 public class UserEntity {
     @Id
@@ -15,7 +19,7 @@ public class UserEntity {
     private Long id;
     @Column(nullable = false)
     private String name;
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true) // inserido unique
     private String email;
     @Column(nullable = false)
     @Enumerated(value = EnumType.STRING)
@@ -27,6 +31,13 @@ public class UserEntity {
     @Column(nullable = false)
     @NotNull
     private LocalDate createdAt;
-    @Column
-    private Boolean admin;
+
+    //private Boolean admin;
+
+    // inserido
+    @ManyToMany(fetch =  FetchType.EAGER, cascade = CascadeType.PERSIST)
+    @JoinTable(name="user_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns =  @JoinColumn(name = "role_id"))
+    private List<RoleEntity> roles;
 }

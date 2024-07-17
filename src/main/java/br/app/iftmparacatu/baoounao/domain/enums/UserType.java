@@ -1,4 +1,4 @@
-package br.app.iftmparacatu.baoounao.domain.model;
+package br.app.iftmparacatu.baoounao.domain.enums;
 
 public enum UserType {
     DOCENTE,
