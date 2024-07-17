@@ -1,5 +1,6 @@
 package br.app.iftmparacatu.baoounao.domain.model;
 
+import br.app.iftmparacatu.baoounao.domain.enums.UserType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
