@@ -22,6 +22,9 @@ target/
 *.ipr
 *.env
 
+## POSTMAN
+*.http
+
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
