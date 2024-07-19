@@ -20,4 +20,11 @@ public class ProposalCategoryEntity {
     @jakarta.validation.constraints.NotNull
     private LocalDateTime createdAt;
 
+    @PrePersist
+    public void prePersist() {
+        if (createdAt == null) {
+            createdAt = createdAt.now();
+        }
+    }
+
 }

@@ -21,4 +21,11 @@ public class CategoryEntity {
     @Column
     private LocalDateTime finishedAt;
 
+    @PrePersist
+    public void prePersist() {
+        if (createdAt == null) {
+            createdAt = createdAt.now();
+        }
+    }
+
 }

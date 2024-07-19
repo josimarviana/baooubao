@@ -40,4 +40,11 @@ public class UserEntity {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns =  @JoinColumn(name = "role_id"))
     private List<RoleEntity> roles;
+
+    @PrePersist
+    public void prePersist() {
+        if (createdAt == null) {
+            createdAt = createdAt.now();
+        }
+    }
 }

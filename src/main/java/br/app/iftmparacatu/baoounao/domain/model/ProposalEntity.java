@@ -41,4 +41,11 @@ public class ProposalEntity {
     @JoinColumn(name = "cycle_entity_id")
     @ManyToOne
     private CycleEntity cycleEntity;
+
+    @PrePersist
+    public void prePersist() {
+        if (createdAt == null) {
+            createdAt = createdAt.now();
+        }
+    }
 }

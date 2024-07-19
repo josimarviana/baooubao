@@ -19,4 +19,11 @@ public class VotingEntity {
     @Column(nullable = false)
     @NotNull
     private LocalDateTime createdAt;
+
+    @PrePersist
+    public void prePersist() {
+        if (createdAt == null) {
+            createdAt = createdAt.now();
+        }
+    }
 }
