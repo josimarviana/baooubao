@@ -4,6 +4,7 @@ import br.app.iftmparacatu.baoounao.domain.security.UserDetailsImpl;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -51,6 +52,41 @@ public class JwtTokenService {
 
     private Instant expirationDate(){
         return ZonedDateTime.now(ZoneId.of("America/Sao_Paulo")).plusHours(4).toInstant();
+    }
+
+    public static class UserTokenInfo {
+        private String username;
+        private Integer userId;
+
+        public UserTokenInfo(String username, Integer userId) {
+            this.username = username;
+            this.userId = userId;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public Integer getUserId() {
+            return userId;
+        }
+    }
+
+    public UserTokenInfo validateToken(String token){
+        try {
+            Algorithm algorithm = Algorithm.HMAC256(SECRET_KEY);
+            var verifier = JWT.require(algorithm)
+                    .withIssuer(ISSUER)
+                    .build();
+
+            var decodedJWT = verifier.verify(token);
+            String username = decodedJWT.getSubject();
+            Integer userId = decodedJWT.getClaim("userId").asInt(); // Extrai o id do usuário
+
+            return new UserTokenInfo(username, userId); //username provavelmente é o email.
+        } catch (JWTVerificationException e) {
+            throw new RuntimeException("Invalid or expired token", e);
+        }
     }
 
 }
