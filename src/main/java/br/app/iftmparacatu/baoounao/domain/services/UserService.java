@@ -54,6 +54,9 @@ public class UserService {
         // Cria um novo usuário com os dados fornecidos
         UserEntity newUser = UserEntity.builder()
                 .email(createUserDto.email())
+                .name(createUserDto.name())
+                .type(createUserDto.type())
+                .active(createUserDto.active())
                 // Codifica a senha do usuário com o algoritmo bcrypt
                 .password(securityConfiguration.passwordEncoder().encode(createUserDto.password()))
                 // Atribui ao usuário uma permissão específica
