@@ -1,6 +1,5 @@
 package br.app.iftmparacatu.baoounao.domain.security;
 
-import br.app.iftmparacatu.baoounao.domain.repository.UserRepository;
 import br.app.iftmparacatu.baoounao.domain.services.JwtTokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -21,7 +20,7 @@ public class SecurityFilter extends OncePerRequestFilter {
     JwtTokenService tokenService;
 
     @Autowired
-    UserDetailsServiceImpl userDetailsServiceImpl;
+    AuthorizationService authorizationService;
 
 
     @Override
@@ -30,7 +29,7 @@ public class SecurityFilter extends OncePerRequestFilter {
         if(token != null){
             JwtTokenService.UserTokenInfo tokenInfo = tokenService.validateToken(token);
             String username = tokenInfo.getUsername();
-            UserDetails user = userDetailsServiceImpl.loadUserByUsername(username);
+            UserDetails user = authorizationService.loadUserByUsername(username);
 
             if (validateToken(token, user)) {
                 var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());

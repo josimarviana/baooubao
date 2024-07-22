@@ -1,6 +1,6 @@
 package br.app.iftmparacatu.baoounao.domain.services;
 
-import br.app.iftmparacatu.baoounao.domain.security.UserDetailsImpl;
+import br.app.iftmparacatu.baoounao.domain.model.UserEntity;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
@@ -16,7 +16,7 @@ public class JwtTokenService {
     private static final String SECRET_KEY="3F29F32F2LKF2889FDSFHSK";
     private static final String ISSUER = "baoounao-api";
 
-    public String generateToken(UserDetailsImpl user){
+    public String generateToken(UserEntity user){
         try{
             Algorithm algorithm = Algorithm.HMAC256(SECRET_KEY);
             return JWT.create()
