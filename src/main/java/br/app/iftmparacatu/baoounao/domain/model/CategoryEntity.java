@@ -24,7 +24,7 @@ public class CategoryEntity {
     @PrePersist
     public void prePersist() {
         if (createdAt == null) {
-            createdAt = createdAt.now();
+            createdAt = LocalDateTime.now();
         }
     }
 
