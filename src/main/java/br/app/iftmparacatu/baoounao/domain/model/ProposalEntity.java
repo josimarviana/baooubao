@@ -1,6 +1,7 @@
 package br.app.iftmparacatu.baoounao.domain.model;
 
 import br.app.iftmparacatu.baoounao.domain.enums.Situation;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -8,6 +9,8 @@ import lombok.Setter;
 
 import java.sql.Blob;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter @Setter
@@ -34,13 +37,16 @@ public class ProposalEntity {
     private String url;
     @Column
     @Lob
-    private  Blob photograpy;
+    private Blob photograpy;
     @JoinColumn(name = "user_entity_id")
     @ManyToOne
     private UserEntity userEntity;
     @JoinColumn(name = "cycle_entity_id")
     @ManyToOne
     private CycleEntity cycleEntity;
+    @OneToMany(mappedBy = "proposalEntity")
+    @JsonIgnore
+    private List<ProposalCategoryEntity> proposalCategoryEntityList = new ArrayList<>();
 
     @PrePersist
     public void prePersist() {

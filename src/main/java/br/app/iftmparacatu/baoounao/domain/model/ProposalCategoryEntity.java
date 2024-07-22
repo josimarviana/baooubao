@@ -1,5 +1,6 @@
 package br.app.iftmparacatu.baoounao.domain.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -14,6 +15,7 @@ public class ProposalCategoryEntity {
     @JoinColumn(name = "category_entity_id")
     private CategoryEntity categoryEntity;
     @ManyToOne
+    @JsonIgnore
     @JoinColumn(name = "proposal_entity_id")
     private ProposalEntity proposalEntity;
     @Column(nullable = false)
