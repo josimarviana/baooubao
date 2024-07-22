@@ -9,6 +9,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,7 +36,7 @@ public class UserEntity implements UserDetails {
     private Boolean active;
     @Column(nullable = false)
     @NotNull
-    private LocalDate createdAt;
+    private LocalDateTime createdAt;
 
     //private Boolean admin;
 
@@ -49,7 +50,7 @@ public class UserEntity implements UserDetails {
     @PrePersist
     public void prePersist() {
         if (createdAt == null) {
-            createdAt = createdAt.now();
+            createdAt = LocalDateTime.now();
         }
     }
 

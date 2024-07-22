@@ -45,7 +45,7 @@ public class ProposalEntity {
     @PrePersist
     public void prePersist() {
         if (createdAt == null) {
-            createdAt = createdAt.now();
+            createdAt = LocalDateTime.now();
         }
     }
 }
