@@ -2,6 +2,7 @@ package br.app.iftmparacatu.baoounao.domain.model;
 
 import br.app.iftmparacatu.baoounao.domain.enums.UserType;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -25,7 +26,8 @@ public class UserEntity implements UserDetails {
     private Long id;
     @Column(nullable = false)
     private String name;
-    @Column(nullable = false, unique = true) // inserido unique
+    @Column(nullable = false, unique = true)
+    @Email
     private String email;
     @Column(nullable = false)
     @Enumerated(value = EnumType.STRING)
@@ -51,6 +53,7 @@ public class UserEntity implements UserDetails {
     public void prePersist() {
         if (createdAt == null) {
             createdAt = LocalDateTime.now();
+            active = true;
         }
     }
 
