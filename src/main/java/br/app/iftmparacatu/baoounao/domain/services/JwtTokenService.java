@@ -1,10 +1,13 @@
 package br.app.iftmparacatu.baoounao.domain.services;
 
+import br.app.iftmparacatu.baoounao.domain.dtos.output.UserTokenInfo;
 import br.app.iftmparacatu.baoounao.domain.model.UserEntity;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
+import lombok.Getter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -13,8 +16,10 @@ import java.time.ZonedDateTime;
 
 @Service
 public class JwtTokenService {
-    private static final String SECRET_KEY="3F29F32F2LKF2889FDSFHSK";
-    private static final String ISSUER = "baoounao-api";
+    @Value("${jwt.secret}")
+    private String SECRET_KEY;
+    @Value("${jwt.issuer}")
+    private String ISSUER;
 
     public String generateToken(UserEntity user){
         try{
@@ -54,24 +59,6 @@ public class JwtTokenService {
         return ZonedDateTime.now(ZoneId.of("America/Sao_Paulo")).plusHours(4).toInstant();
     }
 
-    public static class UserTokenInfo {
-        private String username;
-        private Integer userId;
-
-        public UserTokenInfo(String username, Integer userId) {
-            this.username = username;
-            this.userId = userId;
-        }
-
-        public String getUsername() {
-            return username;
-        }
-
-        public Integer getUserId() {
-            return userId;
-        }
-    }
-
     public UserTokenInfo validateToken(String token){
         try {
             Algorithm algorithm = Algorithm.HMAC256(SECRET_KEY);
@@ -81,9 +68,8 @@ public class JwtTokenService {
 
             var decodedJWT = verifier.verify(token);
             String username = decodedJWT.getSubject();
-            Integer userId = decodedJWT.getClaim("userId").asInt(); // Extrai o id do usuário
 
-            return new UserTokenInfo(username, userId); //username provavelmente é o email.
+            return new UserTokenInfo(username);
         } catch (JWTVerificationException e) {
             throw new RuntimeException("Invalid or expired token", e);
         }
