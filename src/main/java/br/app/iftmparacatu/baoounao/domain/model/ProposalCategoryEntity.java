@@ -3,6 +3,7 @@ package br.app.iftmparacatu.baoounao.domain.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 @Entity
@@ -29,4 +30,8 @@ public class ProposalCategoryEntity {
         }
     }
 
+    @Override
+    public String toString() {
+        return categoryEntity.toString();
+    }
 }

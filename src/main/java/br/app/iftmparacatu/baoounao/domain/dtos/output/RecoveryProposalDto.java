@@ -15,7 +15,7 @@ public class RecoveryProposalDto {
     private String title;
     private String description;
     private Blob photography;
-    private String name;
-    private List<ProposalCategoryEntity> proposalCategoryEntityList;
+    private String author;
+    private List<String> proposalCategoryEntityList;
     private LocalDateTime createdAt;
 }
