@@ -1,9 +1,10 @@
 package br.app.iftmparacatu.baoounao.api.controller;
 
 
+import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryProposalDto;
 import br.app.iftmparacatu.baoounao.domain.model.ProposalEntity;
 import br.app.iftmparacatu.baoounao.domain.repository.ProposalRepository;
-import org.springframework.beans.BeanUtils;
+import br.app.iftmparacatu.baoounao.domain.services.ProposalService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,9 +19,12 @@ public class ProposalController {
     @Autowired
     ProposalRepository proposalRepository;
 
+    @Autowired
+    ProposalService proposalService;
+
     @GetMapping
-    public ResponseEntity<List<ProposalEntity>> list (){
-        List<ProposalEntity> propostas =  proposalRepository.findAll();
+    public ResponseEntity<List<RecoveryProposalDto>> list (){
+        List<RecoveryProposalDto> propostas =  proposalService.findAll();
         return ResponseEntity.status(HttpStatus.OK).body(propostas);
     }
 

@@ -28,4 +28,8 @@ public class CategoryEntity {
         }
     }
 
+    @Override
+    public String toString() {
+        return title;
+    }
 }

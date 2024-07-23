@@ -1,7 +1,9 @@
 package br.app.iftmparacatu.baoounao.domain.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 @Entity
@@ -14,6 +16,7 @@ public class ProposalCategoryEntity {
     @JoinColumn(name = "category_entity_id")
     private CategoryEntity categoryEntity;
     @ManyToOne
+    @JsonIgnore
     @JoinColumn(name = "proposal_entity_id")
     private ProposalEntity proposalEntity;
     @Column(nullable = false)
@@ -27,4 +30,8 @@ public class ProposalCategoryEntity {
         }
     }
 
+    @Override
+    public String toString() {
+        return categoryEntity.toString();
+    }
 }
