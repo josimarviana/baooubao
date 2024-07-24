@@ -48,6 +48,9 @@ public class ProposalEntity {
     @JsonIgnore
     private List<ProposalCategoryEntity> proposalCategoryEntityList = new ArrayList<>();
 
+    @Lob
+    private byte [] image;
+
     @PrePersist
     public void prePersist() {
         if (createdAt == null) {
