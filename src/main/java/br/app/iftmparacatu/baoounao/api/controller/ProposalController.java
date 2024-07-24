@@ -52,39 +52,15 @@ public class ProposalController {
         }
     }
 
-
-
     @GetMapping("/filter")
     public List<ProposalEntity> filterByDescriptionOrTitle (@RequestParam(value = "contain", required = false) String text ){
         return proposalRepository.findByTitleContainingOrDescriptionContaining(text,text);
 
     }
-
     @GetMapping("/trending")
     public List<ProposalEntity> trendingProposals (){
         return proposalRepository.findTop3ByLikesGreaterThanOrderByLikesDesc(0);
 
     }
-
-    @PostMapping("/upload-image/{proposalId}")
-    public ResponseEntity<?> uploadImage(@PathVariable Long proposalId,
-                                          @RequestParam("image") MultipartFile image) {
-        Optional<ProposalEntity> optionalProposal = proposalRepository.findById(proposalId);
-
-        if (optionalProposal.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        try {
-            ProposalEntity proposalEntity = optionalProposal.get();
-            proposalEntity.setImage(image.getBytes());
-            proposalRepository.save(proposalEntity);
-            return ResponseEntity.ok().build();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
 
 }

@@ -37,7 +37,7 @@ public class ProposalEntity {
     private String url;
     @Column
     @Lob
-    private Blob photograpy;
+    private Blob image;
     @JoinColumn(name = "user_entity_id")
     @ManyToOne
     private UserEntity userEntity;
@@ -47,10 +47,6 @@ public class ProposalEntity {
     @OneToMany(mappedBy = "proposalEntity")
     @JsonIgnore
     private List<ProposalCategoryEntity> proposalCategoryEntityList = new ArrayList<>();
-
-    @Lob
-    private byte [] image;
-
     @PrePersist
     public void prePersist() {
         if (createdAt == null) {
