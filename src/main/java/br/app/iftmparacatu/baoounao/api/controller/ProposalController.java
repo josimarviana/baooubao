@@ -43,10 +43,18 @@ public class ProposalController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)//TODO: modificar a exceção quando usar o service
-    public ResponseEntity<ProposalEntity> saveProposal (@RequestBody ProposalEntity proposalEntity ){
+    public ResponseEntity<ProposalEntity> saveProposal (@RequestParam("title") String tittle,
+                                                        @RequestParam("description") String description,
+                                                        @RequestParam("image") MultipartFile image) throws IOException{
         try{
-            ProposalEntity proposta = proposalRepository.save(proposalEntity);
-            return ResponseEntity.status(HttpStatus.CREATED).body(proposta);
+            ProposalEntity proposalEntity = new ProposalEntity();
+            proposalEntity.setDescription(description);
+            proposalEntity.setTitle(tittle);
+            proposalEntity.setImage(image.getBytes());
+            //TO-DO Add categories, user and to add initial situation on model
+
+            proposalRepository.save(proposalEntity);
+            return ResponseEntity.status(HttpStatus.CREATED).body(proposalEntity);
         }catch (Exception e){
             throw  new RuntimeException(e);
         }
