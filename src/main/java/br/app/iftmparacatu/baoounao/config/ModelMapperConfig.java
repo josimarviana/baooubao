@@ -13,12 +13,21 @@ public class ModelMapperConfig {
     @Bean
     public ModelMapper modelMapper(){
         ModelMapper modelMapper = new ModelMapper();
+
         modelMapper.addMappings(new PropertyMap<ProposalEntity, RecoveryProposalDto>() {
             @Override
             protected void configure() {
                 map().setAuthor(source.getUserEntity().getName());
             }
         });
+
+        modelMapper.addMappings(new PropertyMap<ProposalEntity, RecoveryProposalDto>() {
+            @Override
+            protected void configure() {
+                map().setImage(source.getImage());
+            }
+        });
+
 
         return modelMapper;
     }

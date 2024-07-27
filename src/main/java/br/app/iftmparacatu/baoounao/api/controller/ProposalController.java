@@ -45,11 +45,13 @@ public class ProposalController {
     @ResponseStatus(HttpStatus.CREATED)//TODO: modificar a exceção quando usar o service
     public ResponseEntity<ProposalEntity> saveProposal (@RequestParam("title") String tittle,
                                                         @RequestParam("description") String description,
+                                                        @RequestParam("url") String url,
                                                         @RequestParam("image") MultipartFile image) throws IOException{
         try{
             ProposalEntity proposalEntity = new ProposalEntity();
             proposalEntity.setDescription(description);
             proposalEntity.setTitle(tittle);
+            proposalEntity.setVideoUrl(url);
             proposalEntity.setImage(image.getBytes());
             //TO-DO Add categories, user and to add initial situation on model
 

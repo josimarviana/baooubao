@@ -34,9 +34,9 @@ public class ProposalEntity {
     @Column
     private LocalDateTime createdAt;
     @Column(length = 100)
-    private String url;
-    @Column
+    private String videoUrl;
     @Lob
+    @Column(columnDefinition = "LONGBLOB")
     private byte [] image;
     @JoinColumn(name = "user_entity_id")
     @ManyToOne
@@ -46,11 +46,20 @@ public class ProposalEntity {
     private CycleEntity cycleEntity;
     @OneToMany(mappedBy = "proposalEntity")
     @JsonIgnore
-    private List<ProposalCategoryEntity> proposalCategoryEntityList = new ArrayList<>();
+    private List<ProposalCategoryEntity> categorys = new ArrayList<>();
     @PrePersist
     public void prePersist() {
         if (createdAt == null) {
             createdAt = LocalDateTime.now();
+        }
+        if (active == null) {
+            active = true;
+        }
+        if (situation == null) {
+            situation = Situation.FORWARDED_TO_BOARD;
+        }
+        if (likes == null) {
+            likes = 0;
         }
     }
 }
