@@ -7,9 +7,10 @@ services:
     network_mode: worknet
     restart: unless-stopped
     ports:
-      - 8082:8080
+      - 8085:${API_PORT}
     environment:
       - DB_HOST=${DB_HOST}
       - DB_USER=${DB_USER}
       - DB_PASS=${DB_PASS}
       - DB_NAME=${DB_NAME}
+      - API_PORT=${API_PORT}

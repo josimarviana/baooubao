@@ -25,6 +25,9 @@ target/
 ## POSTMAN
 *.http
 
+## VOLUME
+data
+
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
