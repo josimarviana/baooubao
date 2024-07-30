@@ -1,0 +1,15 @@
+version: "3.3"
+services:
+  baoounao-backend:
+    build: .
+    image: appbaoounao
+    container_name: baoounaobackend
+    network_mode: worknet
+    restart: unless-stopped
+    ports:
+      - 8082:8080
+    environment:
+      - DB_HOST=${DB_HOST}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+      - DB_NAME=${DB_NAME}
