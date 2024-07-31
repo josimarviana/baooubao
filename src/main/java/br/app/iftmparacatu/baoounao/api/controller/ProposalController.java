@@ -73,4 +73,12 @@ public class ProposalController {
 
     }
 
+
+    @PatchMapping("/{proposalID}")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<RecoveryProposalDto> updateProposal(@PathVariable Long proposalId, @RequestBody ProposalEntity proposalEntity ){
+        RecoveryProposalDto proposalDto = proposalService.update(proposalId,proposalEntity);
+        return ResponseEntity.status(HttpStatus.OK).body(proposalDto);
+    }
+
 }
