@@ -16,6 +16,7 @@ public class RecoveryProposalDto {
     private String description;
     private byte [] image;
     private String author;
+    private int likes;
     private List<String> categorys;
     private LocalDateTime createdAt;
 }

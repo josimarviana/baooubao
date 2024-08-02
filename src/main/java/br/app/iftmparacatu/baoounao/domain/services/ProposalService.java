@@ -21,14 +21,23 @@ public class ProposalService {
     @Autowired
     private ProposalRepository proposalRepository;
 
+    @Autowired
+    private VotingService votingService;
+
     public RecoveryProposalDto mapToDto(ProposalEntity proposalEntity) {
         return modelMapper.map(proposalEntity, RecoveryProposalDto.class);
+    }
+
+    public RecoveryProposalDto mapToDto(ProposalEntity proposalEntity, int voteCount) {
+        RecoveryProposalDto dto = modelMapper.map(proposalEntity, RecoveryProposalDto.class);
+        dto.setLikes(voteCount);
+        return dto;
     }
 
     public List<RecoveryProposalDto> findAll(){
         List<ProposalEntity> proposals = proposalRepository.findAll();
         return proposals.stream()
-                .map(this::mapToDto)
+                .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal)))
                 .collect(Collectors.toList());
     }
     public RecoveryProposalDto update(Long proposalID, ProposalEntity proposalEntity) {
