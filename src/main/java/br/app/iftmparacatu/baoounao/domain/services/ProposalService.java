@@ -3,14 +3,22 @@ package br.app.iftmparacatu.baoounao.domain.services;
 import br.app.iftmparacatu.baoounao.api.exception.ProposalException;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryProposalDto;
 import br.app.iftmparacatu.baoounao.domain.enums.Situation;
+import br.app.iftmparacatu.baoounao.domain.model.CategoryEntity;
 import br.app.iftmparacatu.baoounao.domain.model.ProposalEntity;
+import br.app.iftmparacatu.baoounao.domain.repository.CategoryRepository;
 import br.app.iftmparacatu.baoounao.domain.repository.ProposalRepository;
+import br.app.iftmparacatu.baoounao.domain.util.SecurityUtil;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -20,6 +28,9 @@ public class ProposalService {
 
     @Autowired
     private ProposalRepository proposalRepository;
+
+    @Autowired
+    CategoryRepository categoryRepository;
 
     @Autowired
     private VotingService votingService;
@@ -33,6 +44,25 @@ public class ProposalService {
         dto.setLikes(voteCount);
         return dto;
     }
+
+    public ResponseEntity<Object> save(String tittle,String description,String url,MultipartFile image,String category){
+        try{
+            ProposalEntity proposalEntity = new ProposalEntity();
+            proposalEntity.setDescription(description);
+            proposalEntity.setTitle(tittle);
+            proposalEntity.setVideoUrl(url);
+            proposalEntity.setImage(image.getBytes());
+            CategoryEntity categoryEntity = categoryRepository.findByTitle(category);
+            proposalEntity.setCategoryEntity(categoryEntity);
+            proposalEntity.setUserEntity(SecurityUtil.getAuthenticatedUser());
+            //TO-DO Add categories, user and to add initial situation on model
+
+            proposalRepository.save(proposalEntity);
+            return ResponseEntity.status(HttpStatus.CREATED).build();
+        }catch (Exception e){
+            throw  new RuntimeException(e);
+        }
+    };
 
     public List<RecoveryProposalDto> findAll(){
         List<ProposalEntity> proposals = proposalRepository.findAll();

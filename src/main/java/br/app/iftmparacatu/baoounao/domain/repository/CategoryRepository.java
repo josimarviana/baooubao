@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 import br.app.iftmparacatu.baoounao.domain.model.CategoryEntity;
 @Repository
 public interface CategoryRepository extends JpaRepository<CategoryEntity, Long> {
-
+    CategoryEntity findByTitle(String title);
 }

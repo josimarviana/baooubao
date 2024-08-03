@@ -2,9 +2,12 @@ package br.app.iftmparacatu.baoounao.api.controller;
 
 
 import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryProposalDto;
+import br.app.iftmparacatu.baoounao.domain.model.CategoryEntity;
 import br.app.iftmparacatu.baoounao.domain.model.ProposalEntity;
+import br.app.iftmparacatu.baoounao.domain.repository.CategoryRepository;
 import br.app.iftmparacatu.baoounao.domain.repository.ProposalRepository;
 import br.app.iftmparacatu.baoounao.domain.services.ProposalService;
+import br.app.iftmparacatu.baoounao.domain.util.SecurityUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +23,6 @@ import java.util.Optional;
 public class ProposalController {
     @Autowired
     ProposalRepository proposalRepository;
-
     @Autowired
     ProposalService proposalService;
 
@@ -43,23 +45,12 @@ public class ProposalController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)//TODO: modificar a exceção quando usar o service
-    public ResponseEntity<ProposalEntity> saveProposal (@RequestParam("title") String tittle,
-                                                        @RequestParam("description") String description,
-                                                        @RequestParam("url") String url,
-                                                        @RequestParam("image") MultipartFile image) throws IOException{
-        try{
-            ProposalEntity proposalEntity = new ProposalEntity();
-            proposalEntity.setDescription(description);
-            proposalEntity.setTitle(tittle);
-            proposalEntity.setVideoUrl(url);
-            proposalEntity.setImage(image.getBytes());
-            //TO-DO Add categories, user and to add initial situation on model
-
-            proposalRepository.save(proposalEntity);
-            return ResponseEntity.status(HttpStatus.CREATED).body(proposalEntity);
-        }catch (Exception e){
-            throw  new RuntimeException(e);
-        }
+    public ResponseEntity<Object> saveProposal (@RequestParam("title") String tittle,
+                                                @RequestParam("description") String description,
+                                                @RequestParam("url") String url,
+                                                @RequestParam("image") MultipartFile image,
+                                                @RequestParam("category") String category) throws IOException{
+        return proposalService.save(tittle, description, url, image, category);
     }
 
     @GetMapping("/filter")
