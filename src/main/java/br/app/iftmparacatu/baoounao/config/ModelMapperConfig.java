@@ -1,7 +1,6 @@
 package br.app.iftmparacatu.baoounao.config;
 
 import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryProposalDto;
-import br.app.iftmparacatu.baoounao.domain.model.ProposalCategoryEntity;
 import br.app.iftmparacatu.baoounao.domain.model.ProposalEntity;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;

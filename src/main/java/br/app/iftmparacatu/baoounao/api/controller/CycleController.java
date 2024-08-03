@@ -1,8 +1,6 @@
 package br.app.iftmparacatu.baoounao.api.controller;
 
-import br.app.iftmparacatu.baoounao.domain.model.CategoryEntity;
 import br.app.iftmparacatu.baoounao.domain.model.CycleEntity;
-import br.app.iftmparacatu.baoounao.domain.model.ProposalCategoryEntity;
 import br.app.iftmparacatu.baoounao.domain.repository.CycleRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;

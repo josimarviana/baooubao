@@ -44,9 +44,9 @@ public class ProposalEntity {
     @JoinColumn(name = "cycle_entity_id")
     @ManyToOne
     private CycleEntity cycleEntity;
-    @OneToMany(mappedBy = "proposalEntity")
-    @JsonIgnore
-    private List<ProposalCategoryEntity> categorys = new ArrayList<>();
+    @JoinColumn(name = "category_entity_id")
+    @ManyToOne
+    private CategoryEntity categoryEntity;
     @PrePersist
     public void prePersist() {
         if (createdAt == null) {
