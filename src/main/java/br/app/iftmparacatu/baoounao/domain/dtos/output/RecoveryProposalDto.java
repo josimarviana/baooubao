@@ -14,5 +14,6 @@ public class RecoveryProposalDto {
     private String author;
     private int likes;
     private String category;
+    private String situation;
     private LocalDateTime createdAt;
 }
