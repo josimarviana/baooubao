@@ -19,19 +19,13 @@ import java.util.Optional;
 public class VotingController {
     @Autowired
     private VotingService votingService;
-//    @GetMapping
-//    public List<VotingEntity> list(){
-//        return votingRepository.findAll();
-//    }
-
-//    @GetMapping("/{votingID}") //TODO: Adicionar exception para quando não encontrar a entidade
-//    public Optional<VotingEntity> findById(@PathVariable Long votingID) {
-//        return votingRepository.findById(votingID); //.orElseThrow(() -> new EntityNotFoundException("REGISTRO NÃO ENCONTRADO!"));
-//    }
-
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<Object> save(@RequestBody @Valid VotingDto votingDto) {
+    public ResponseEntity<Object> vote(@RequestBody @Valid VotingDto votingDto) {
         return votingService.save(votingDto);
+    }
+
+    @DeleteMapping("/unvote")
+    public ResponseEntity<Object> unvote(@RequestBody @Valid VotingDto votingDto) {
+        return votingService.remove(votingDto);
     }
 }

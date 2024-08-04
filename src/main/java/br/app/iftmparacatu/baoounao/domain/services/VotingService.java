@@ -1,19 +1,18 @@
 package br.app.iftmparacatu.baoounao.domain.services;
 
+import br.app.iftmparacatu.baoounao.api.exception.EntityNotFoundException;
 import br.app.iftmparacatu.baoounao.api.exception.VoteNotAllowedException;
 import br.app.iftmparacatu.baoounao.domain.dtos.input.VotingDto;
-import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryProposalDto;
-import br.app.iftmparacatu.baoounao.domain.enums.RoleName;
 import br.app.iftmparacatu.baoounao.domain.model.*;
 import br.app.iftmparacatu.baoounao.domain.repository.VotingRepository;
 import br.app.iftmparacatu.baoounao.domain.util.SecurityUtil;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class VotingService {
@@ -32,7 +31,7 @@ public class VotingService {
         CycleEntity currentCicle = cycleService.findProgressCycle().get();
         Long userVotes = votingRepository.countByUserEntityAndProposalEntityCycleEntity(SecurityUtil.getAuthenticatedUser(),currentCicle);
 
-        if (userVotes == 3){ //TODO: tavles fique interessante parametrizar a quantidade de votos por ciclo em uma configuração do sistema
+        if (userVotes == 3){ //TODO: tavlez fique interessante parametrizar a quantidade de votos por ciclo em uma configuração do sistema
             throw new VoteNotAllowedException("Você atingiu o limite máximo de 3 votos para o ciclo atual. Não é permitido votar em mais do que 3 propostas.");
         }
 
@@ -41,6 +40,12 @@ public class VotingService {
                 .build();
         votingRepository.save(newVoting);
        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    public ResponseEntity<Object> remove(VotingDto votingDto){
+        Optional<VotingEntity> vote = Optional.ofNullable(votingRepository.findFirstByUserEntityAndProposalEntity(SecurityUtil.getAuthenticatedUser(), votingDto.proposalEntity()).orElseThrow(() -> new EntityNotFoundException("Não foram encontrado votos para esta proposta")));
+        votingRepository.delete(vote.get());
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
 }
