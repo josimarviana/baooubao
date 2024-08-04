@@ -12,6 +12,8 @@ import java.util.Optional;
 @Repository
 public interface VotingRepository extends JpaRepository<VotingEntity,Long> {
     int countByProposalEntity(ProposalEntity proposal);
+
+    Long countByUserEntityAndProposalEntity(UserEntity userEntity, ProposalEntity proposalEntity);
     Long countByUserEntityAndProposalEntityCycleEntity(UserEntity userEntity, CycleEntity cycleEntity);
 
     Optional<VotingEntity> findFirstByUserEntityAndProposalEntity(UserEntity userEntity, ProposalEntity proposalEntity);

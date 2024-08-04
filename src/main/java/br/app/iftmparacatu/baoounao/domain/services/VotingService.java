@@ -27,13 +27,18 @@ public class VotingService {
     }
 
     public ResponseEntity<Object> save(VotingDto votingDto){
-
+        UserEntity currentUser = SecurityUtil.getAuthenticatedUser();
         CycleEntity currentCicle = cycleService.findProgressCycle().get();
-        Long userVotes = votingRepository.countByUserEntityAndProposalEntityCycleEntity(SecurityUtil.getAuthenticatedUser(),currentCicle);
+        Long userVotesCurrentCycle = votingRepository.countByUserEntityAndProposalEntityCycleEntity(currentUser,currentCicle);
+        Long userVotesCurrentProposal = votingRepository.countByUserEntityAndProposalEntity(currentUser,votingDto.proposalEntity());
 
-        if (userVotes == 3){ //TODO: tavlez fique interessante parametrizar a quantidade de votos por ciclo em uma configuração do sistema
+        if(userVotesCurrentProposal != 0){
+            throw new VoteNotAllowedException("Você já votou nesta proposta. Não é permitido votar mais de uma vez na mesma proposta.");
+        }
+        if (userVotesCurrentCycle == 3){ //TODO: tavlez fique interessante parametrizar a quantidade de votos por ciclo em uma configuração do sistema
             throw new VoteNotAllowedException("Você atingiu o limite máximo de 3 votos para o ciclo atual. Não é permitido votar em mais do que 3 propostas.");
         }
+
 
         VotingEntity newVoting = VotingEntity.builder()
                 .proposalEntity(votingDto.proposalEntity())
