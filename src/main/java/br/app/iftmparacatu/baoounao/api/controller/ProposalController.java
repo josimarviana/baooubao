@@ -33,14 +33,9 @@ public class ProposalController {
         return ResponseEntity.status(HttpStatus.OK).body(propostas);
     }
 
-    @GetMapping("/{proposalId}") //TODO: modificar a exceção quando usar o service
-    public ResponseEntity<ProposalEntity> getFindById (@PathVariable Long proposalId ){
-        Optional<ProposalEntity> proposta = proposalRepository.findById(proposalId);
-        if(proposta.isPresent()){
-            return ResponseEntity.status(HttpStatus.OK).body(proposta.get());
-
-        } else throw new RuntimeException("Proposal de id " + proposalId + "não foi encontrada");
-
+    @GetMapping("/{proposalId}")
+    public ResponseEntity<Object> getFindById (@PathVariable Long proposalId ){
+        return proposalService.findById(proposalId);
     }
 
 

@@ -1,10 +1,13 @@
 package br.app.iftmparacatu.baoounao.domain.services;
 
+import br.app.iftmparacatu.baoounao.api.exception.EntityNotFoundException;
 import br.app.iftmparacatu.baoounao.api.exception.ProposalException;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryProposalDto;
+import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryTrendingProposalDto;
 import br.app.iftmparacatu.baoounao.domain.enums.Situation;
 import br.app.iftmparacatu.baoounao.domain.model.CategoryEntity;
 import br.app.iftmparacatu.baoounao.domain.model.ProposalEntity;
+import br.app.iftmparacatu.baoounao.domain.model.VotingEntity;
 import br.app.iftmparacatu.baoounao.domain.repository.CategoryRepository;
 import br.app.iftmparacatu.baoounao.domain.repository.ProposalRepository;
 import br.app.iftmparacatu.baoounao.domain.util.SecurityUtil;
@@ -20,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -40,10 +44,18 @@ public class ProposalService {
         return modelMapper.map(proposalEntity, RecoveryProposalDto.class);
     }
 
-    public RecoveryProposalDto mapToDto(ProposalEntity proposalEntity, int voteCount) {
-        RecoveryProposalDto dto = modelMapper.map(proposalEntity, RecoveryProposalDto.class);
-        dto.setLikes(voteCount);
+    public <T> T mapToDto(ProposalEntity proposalEntity, int voteCount, Class<T> dtoClass) {
+        T dto = modelMapper.map(proposalEntity, dtoClass);
+        if (dto instanceof RecoveryProposalDto) {
+            ((RecoveryProposalDto) dto).setLikes(voteCount);
+        }
         return dto;
+    }
+
+    public ResponseEntity<Object> findById(Long proposalId){
+        Optional<ProposalEntity> proposal = Optional.ofNullable(proposalRepository.findById(proposalId).orElseThrow(() -> new EntityNotFoundException(String.format("Proposta de id %d não foi encontrada",proposalId))));
+        proposal.get().setLikes(votingService.countByProposalEntity(proposal.get()));
+        return ResponseEntity.status(HttpStatus.OK).body(mapToDto(proposal.get()));
     }
 
     public ResponseEntity<Object> save(String tittle,String description,String url,MultipartFile image,String category){
@@ -67,15 +79,15 @@ public class ProposalService {
     public List<RecoveryProposalDto> findAll(){
         List<ProposalEntity> proposals = proposalRepository.findAll();
         return proposals.stream()
-                .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal)))
+                .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal),RecoveryProposalDto.class))
                 .collect(Collectors.toList());
     }
 
     public ResponseEntity<Object> trendingProposals(){
         PageRequest pageRequest = PageRequest.of(0, 3);
         List<ProposalEntity> proposalEntityList = proposalRepository.findAllByOrderByVotesDesc(pageRequest).getContent();
-        List<RecoveryProposalDto> recoveryProposalDtoList = proposalEntityList.stream()
-                                                            .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal)))
+        List<RecoveryTrendingProposalDto> recoveryProposalDtoList = proposalEntityList.stream()
+                                                            .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal),RecoveryTrendingProposalDto.class))
                                                             .collect(Collectors.toList());
         return ResponseEntity.status(HttpStatus.OK).body(recoveryProposalDtoList);
     }
