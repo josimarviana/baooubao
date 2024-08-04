@@ -8,11 +8,14 @@ import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class JwtTokenService {
@@ -24,13 +27,17 @@ public class JwtTokenService {
     public String generateToken(UserEntity user){
         try{
             Algorithm algorithm = Algorithm.HMAC256(SECRET_KEY);
+
+            List<String> roles = user.getAuthorities().stream()
+                                     .map(GrantedAuthority::getAuthority)
+                                     .collect(Collectors.toList());
             return JWT.create()
-                    .withIssuer(ISSUER) //define o emissor
-                    .withIssuedAt(creationDate()) //define a data de emissao
-                    .withExpiresAt(expirationDate()) //define a data de expiracao
-                    .withSubject(user.getUsername()) //define o assunto do token
-                    .withClaim("userId",user.getId())
-                    .sign(algorithm); //assina o token usando o algoritmo
+                    .withIssuer(ISSUER)
+                    .withIssuedAt(creationDate())
+                    .withExpiresAt(expirationDate())
+                    .withSubject(user.getUsername())
+                    .withClaim("roles",roles)
+                    .sign(algorithm);
 
         }catch (JWTCreationException exception){
             throw new JWTCreationException("Erro ao gerar token", exception);
