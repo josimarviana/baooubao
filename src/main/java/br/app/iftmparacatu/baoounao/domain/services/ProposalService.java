@@ -12,6 +12,7 @@ import br.app.iftmparacatu.baoounao.domain.repository.CategoryRepository;
 import br.app.iftmparacatu.baoounao.domain.repository.ProposalRepository;
 import br.app.iftmparacatu.baoounao.domain.util.SecurityUtil;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.internal.bytebuddy.asm.Advice;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -81,6 +82,14 @@ public class ProposalService {
         return proposals.stream()
                 .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal),RecoveryProposalDto.class))
                 .collect(Collectors.toList());
+    }
+
+    public ResponseEntity<Object> myProposals(){
+        List<ProposalEntity> proposalEntityList = proposalRepository.findAllByUserEntity(SecurityUtil.getAuthenticatedUser());
+        List <RecoveryProposalDto> recoveryProposalDtoList = proposalEntityList.stream()
+                                                             .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal),RecoveryProposalDto.class))
+                                                              .collect(Collectors.toList());
+        return ResponseEntity.status(HttpStatus.OK).body(recoveryProposalDtoList);
     }
 
     public ResponseEntity<Object> trendingProposals(){
