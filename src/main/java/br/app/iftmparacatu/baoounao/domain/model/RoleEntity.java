@@ -9,8 +9,8 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Builder
-@NoArgsConstructor // gera construtor sem parametros
-@AllArgsConstructor // gera construtor com todos os parametros
+@NoArgsConstructor
+@AllArgsConstructor
 @Getter
 
 public class RoleEntity {

@@ -8,6 +8,7 @@ import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryJwtTokenDto;
 import br.app.iftmparacatu.baoounao.domain.enums.RoleName;
 import br.app.iftmparacatu.baoounao.domain.model.RoleEntity;
 import br.app.iftmparacatu.baoounao.domain.model.UserEntity;
+import br.app.iftmparacatu.baoounao.domain.repository.RoleRepository;
 import br.app.iftmparacatu.baoounao.domain.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -28,6 +29,10 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private RoleRepository roleRepository;
+
     @Autowired
     private SecurityConfig securityConfiguration;
 
@@ -44,20 +49,14 @@ public class UserService {
         return new RecoveryJwtTokenDto(jwtTokenService.generateToken(userDetails));
     }
 
-    // Método responsável por criar um usuário
     public void createUser(CreateUserDto createUserDto) {
-        // Cria um novo usuário com os dados fornecidos
         UserEntity newUser = UserEntity.builder()
                 .email(createUserDto.email())
                 .name(createUserDto.name())
                 .type(createUserDto.type())
-                // Codifica a senha do usuário com o algoritmo bcrypt
                 .password(securityConfiguration.passwordEncoder().encode(createUserDto.password()))
-                // Atribui ao usuário uma permissão específica
-                .roles(List.of(RoleEntity.builder().name(RoleName.ROLE_USER).build()))
+                .roles(List.of(roleRepository.findByName(RoleName.ROLE_USER)))
                 .build();
-
-        // Salva o novo usuário no banco de dados
         userRepository.save(newUser);
     }
 }

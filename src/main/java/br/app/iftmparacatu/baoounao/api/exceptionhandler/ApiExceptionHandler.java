@@ -1,7 +1,7 @@
 package br.app.iftmparacatu.baoounao.api.exceptionhandler;
 
+import br.app.iftmparacatu.baoounao.api.exception.EntityNotFoundException;
 import br.app.iftmparacatu.baoounao.api.response.Problem;
-import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -19,10 +19,10 @@ import java.util.Map;
 
 @ControllerAdvice
 public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
-//    @ExceptionHandler(EntidadeNaoEncontradaException.class)
-//    public ResponseEntity<?> tratarEntidadeNaoEncontrada(EntidadeNaoEncontradaException e, WebRequest request){
-//        return handleExceptionInternal(e, e.getMessage(), new HttpHeaders(), HttpStatus.NOT_FOUND,request);
-//    }
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<?> handleEntityNotFoundException(EntityNotFoundException e, WebRequest request){
+        return handleExceptionInternal(e, e.getMessage(), new HttpHeaders(), HttpStatus.NOT_FOUND,request);
+    }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Problem> handleGenericException(Exception ex) {
