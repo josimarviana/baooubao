@@ -1,0 +1,1 @@
+INSERT INTO cycle_entity(title,created_at) VALUES ('2024/1','2023-03-14');
