@@ -11,6 +11,7 @@ import br.app.iftmparacatu.baoounao.domain.util.SecurityUtil;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -68,6 +69,15 @@ public class ProposalService {
         return proposals.stream()
                 .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal)))
                 .collect(Collectors.toList());
+    }
+
+    public ResponseEntity<Object> trendingProposals(){
+        PageRequest pageRequest = PageRequest.of(0, 3);
+        List<ProposalEntity> proposalEntityList = proposalRepository.findAllByOrderByVotesDesc(pageRequest).getContent();
+        List<RecoveryProposalDto> recoveryProposalDtoList = proposalEntityList.stream()
+                                                            .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal)))
+                                                            .collect(Collectors.toList());
+        return ResponseEntity.status(HttpStatus.OK).body(recoveryProposalDtoList);
     }
     public RecoveryProposalDto update(Long proposalID, ProposalEntity proposalEntity) {
         if (proposalEntity.getSituation().equals(Situation.OPEN_FOR_VOTING)){

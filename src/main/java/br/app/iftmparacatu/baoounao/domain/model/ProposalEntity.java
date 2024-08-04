@@ -27,6 +27,9 @@ public class ProposalEntity {
     private String description;
     @Column
     private Integer likes;
+    @OneToMany(mappedBy = "proposalEntity")
+    @JsonIgnore
+    private List<VotingEntity> votes;
     @Column(length = 100)
     @Enumerated(value = EnumType.STRING)
     private Situation situation;
@@ -58,9 +61,6 @@ public class ProposalEntity {
         }
         if (situation == null) {
             situation = Situation.FORWARDED_TO_BOARD;
-        }
-        if (likes == null) {
-            likes = 0;
         }
 
         if(userEntity == null){

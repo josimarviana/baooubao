@@ -9,6 +9,7 @@ import br.app.iftmparacatu.baoounao.domain.repository.ProposalRepository;
 import br.app.iftmparacatu.baoounao.domain.services.ProposalService;
 import br.app.iftmparacatu.baoounao.domain.util.SecurityUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -59,9 +60,8 @@ public class ProposalController {
 
     }
     @GetMapping("/trending")
-    public List<ProposalEntity> trendingProposals (){
-        return proposalRepository.findTop3ByLikesGreaterThanOrderByLikesDesc(0);
-
+    public ResponseEntity<Object> trendingProposals (){
+        return proposalService.trendingProposals();
     }
 
 
