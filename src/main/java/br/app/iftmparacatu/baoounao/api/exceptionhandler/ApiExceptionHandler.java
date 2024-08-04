@@ -1,6 +1,7 @@
 package br.app.iftmparacatu.baoounao.api.exceptionhandler;
 
 import br.app.iftmparacatu.baoounao.api.exception.EntityNotFoundException;
+import br.app.iftmparacatu.baoounao.api.exception.VoteNotAllowedException;
 import br.app.iftmparacatu.baoounao.api.response.Problem;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -22,6 +23,11 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<?> handleEntityNotFoundException(EntityNotFoundException e, WebRequest request){
         return handleExceptionInternal(e, e.getMessage(), new HttpHeaders(), HttpStatus.NOT_FOUND,request);
+    }
+
+    @ExceptionHandler(VoteNotAllowedException.class)
+    public ResponseEntity<?> handleVoteNotAllowedException(VoteNotAllowedException e, WebRequest request){
+        return handleExceptionInternal(e, e.getMessage(), new HttpHeaders(), HttpStatus.FORBIDDEN,request);
     }
 
     @ExceptionHandler(Exception.class)

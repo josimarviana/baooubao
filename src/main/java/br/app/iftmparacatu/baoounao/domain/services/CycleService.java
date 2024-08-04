@@ -29,6 +29,10 @@ public class CycleService {
     @Autowired
     private CycleRepository cycleRepository;
 
+    public Optional<CycleEntity> findProgressCycle(){
+        return Optional.ofNullable(cycleRepository.findByFinishedAtIsNull().orElseThrow(() -> new EntityNotFoundException("NÃO FOI ENCONTRADO CICLO EM ANDAMENTO")));
+    }
+
     public ResponseEntity<Object> save(CreateCycleDto createCycleDto){
         Optional<CycleEntity> openCycle = cycleRepository.findByFinishedAtIsNull();
 

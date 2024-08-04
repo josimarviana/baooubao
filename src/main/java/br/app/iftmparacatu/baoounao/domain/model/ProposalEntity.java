@@ -1,6 +1,7 @@
 package br.app.iftmparacatu.baoounao.domain.model;
 
 import br.app.iftmparacatu.baoounao.domain.enums.Situation;
+import br.app.iftmparacatu.baoounao.domain.util.SecurityUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
@@ -60,6 +61,10 @@ public class ProposalEntity {
         }
         if (likes == null) {
             likes = 0;
+        }
+
+        if(userEntity == null){
+            userEntity = SecurityUtil.getAuthenticatedUser();
         }
     }
 }

@@ -6,5 +6,5 @@ import br.app.iftmparacatu.baoounao.domain.model.UserEntity;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-public record VotingDto(@NotNull ProposalEntity proposalEntity,@NotNull UserEntity userEntity) {
+public record VotingDto(@NotNull ProposalEntity proposalEntity) {
 }

@@ -54,7 +54,6 @@ public class ProposalService {
             proposalEntity.setImage(image.getBytes());
             CategoryEntity categoryEntity = categoryRepository.findByTitle(category);
             proposalEntity.setCategoryEntity(categoryEntity);
-            proposalEntity.setUserEntity(SecurityUtil.getAuthenticatedUser());
             //TO-DO Add categories, user and to add initial situation on model
 
             proposalRepository.save(proposalEntity);
