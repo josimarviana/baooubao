@@ -35,7 +35,7 @@ public class JwtTokenService {
                     .withIssuer(ISSUER)
                     .withIssuedAt(creationDate())
                     .withExpiresAt(expirationDate())
-                    .withSubject(user.getName())
+                    .withSubject(user.getUsername())
                     .withClaim("roles",roles)
                     .sign(algorithm);
 
