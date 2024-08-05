@@ -4,6 +4,7 @@ import br.app.iftmparacatu.baoounao.api.exception.EntityNotFoundException;
 import br.app.iftmparacatu.baoounao.api.exception.ProposalException;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryProposalDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryTrendingProposalDto;
+import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryVoteProposalDto;
 import br.app.iftmparacatu.baoounao.domain.enums.Situation;
 import br.app.iftmparacatu.baoounao.domain.model.CategoryEntity;
 import br.app.iftmparacatu.baoounao.domain.model.ProposalEntity;
@@ -112,5 +113,10 @@ public class ProposalService {
 
             return this.mapToDto(existingProposal);
         }
+    }
+
+    public ResponseEntity<Object> hasVoted(Long proposalId){
+        Optional<ProposalEntity> proposal = Optional.ofNullable(proposalRepository.findById(proposalId).orElseThrow(() -> new EntityNotFoundException(String.format("Proposta de id %d não foi encontrada",proposalId))));
+        return ResponseEntity.status(HttpStatus.OK).body(new RecoveryVoteProposalDto(votingService.hasVoted(SecurityUtil.getAuthenticatedUser(),proposal.get())));
     }
 }
