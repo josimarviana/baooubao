@@ -71,4 +71,8 @@ public class ProposalController {
         return ResponseEntity.status(HttpStatus.OK).body(proposalDto);
     }
 
+    @GetMapping("/has-voted/{proposalId}")
+    public ResponseEntity<Object> hasVoted (@PathVariable Long proposalId ){
+        return proposalService.hasVoted(proposalId);
+    }
 }

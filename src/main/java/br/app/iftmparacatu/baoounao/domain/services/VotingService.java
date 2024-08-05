@@ -26,6 +26,10 @@ public class VotingService {
         return votingRepository.countByProposalEntity(proposalEntity);
     }
 
+    public boolean hasVoted(UserEntity userEntity, ProposalEntity proposalEntity){
+        return votingRepository.countByUserEntityAndProposalEntity(userEntity,proposalEntity) > 0;
+    }
+
     public ResponseEntity<Object> save(VotingDto votingDto){
         UserEntity currentUser = SecurityUtil.getAuthenticatedUser();
         CycleEntity currentCicle = cycleService.findProgressCycle().get();
