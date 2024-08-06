@@ -37,7 +37,8 @@ public class SecurityConfig {
 
     // Endpoints que só podem ser acessador por usuários com permissão de administrador
     public static final String [] ENDPOINTS_ADMIN = {
-            "/cycle"
+            "/cycle",
+            "/category"
     };
 
     @Autowired
