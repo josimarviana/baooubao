@@ -8,10 +8,7 @@ import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -40,10 +37,6 @@ public class UserEntity implements UserDetails {
     @Column(nullable = false)
     @NotNull
     private LocalDateTime createdAt;
-
-    //private Boolean admin;
-
-    // inserido
     @ManyToMany(fetch =  FetchType.EAGER, cascade = CascadeType.PERSIST)
     @JoinTable(name="user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
