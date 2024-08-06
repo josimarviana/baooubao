@@ -7,6 +7,7 @@ import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryTrendingProposalD
 import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryVoteProposalDto;
 import br.app.iftmparacatu.baoounao.domain.enums.Situation;
 import br.app.iftmparacatu.baoounao.domain.model.CategoryEntity;
+import br.app.iftmparacatu.baoounao.domain.model.CycleEntity;
 import br.app.iftmparacatu.baoounao.domain.model.ProposalEntity;
 import br.app.iftmparacatu.baoounao.domain.model.VotingEntity;
 import br.app.iftmparacatu.baoounao.domain.repository.CategoryRepository;
@@ -42,6 +43,9 @@ public class ProposalService {
     @Autowired
     private VotingService votingService;
 
+    @Autowired
+    private CycleService cycleService;
+
     public RecoveryProposalDto mapToDto(ProposalEntity proposalEntity) {
         return modelMapper.map(proposalEntity, RecoveryProposalDto.class);
     }
@@ -61,12 +65,19 @@ public class ProposalService {
     }
 
     public ResponseEntity<Object> save(String tittle,String description,String url,MultipartFile image,String category){
+        Optional<CycleEntity> currentCycle = cycleService.findProgressCycle();
+
+        if(!currentCycle.isPresent()){
+            throw new EntityNotFoundException("Não foram encontrados ciclos em andamento. Para cadastrar uma proposta, é necessário primeiro cadastrar um ciclo.");
+        }
+
         try{
             ProposalEntity proposalEntity = new ProposalEntity();
             proposalEntity.setDescription(description);
             proposalEntity.setTitle(tittle);
             proposalEntity.setVideoUrl(url);
             proposalEntity.setImage(image.getBytes());
+            proposalEntity.setCycleEntity(currentCycle.get());
             CategoryEntity categoryEntity = categoryRepository.findByTitle(category);
             proposalEntity.setCategoryEntity(categoryEntity);
             //TO-DO Add categories, user and to add initial situation on model

@@ -6,7 +6,6 @@ import org.springframework.context.annotation.PropertySource;
 
 @SpringBootApplication
 public class BaoounaoApplication {
-
 	public static void main(String[] args) {
 		SpringApplication.run(BaoounaoApplication.class, args);
 	}

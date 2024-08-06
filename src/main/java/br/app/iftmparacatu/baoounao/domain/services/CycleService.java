@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -30,19 +31,15 @@ public class CycleService {
     private CycleRepository cycleRepository;
 
     public Optional<CycleEntity> findProgressCycle(){
-        return Optional.ofNullable(cycleRepository.findByFinishedAtIsNull().orElseThrow(() -> new EntityNotFoundException("NÃO FOI ENCONTRADO CICLO EM ANDAMENTO")));
+        LocalDate date = LocalDate.now();
+        return cycleRepository.findByStartDateLessThanEqualAndFinishDateGreaterThanEqual(date,date);
     }
 
     public ResponseEntity<Object> save(CreateCycleDto createCycleDto){
-        Optional<CycleEntity> openCycle = cycleRepository.findByFinishedAtIsNull();
-
-        if(openCycle.isPresent()){
-            throw new ProgressCycleException("Não é possível cadastrar um novo ciclo pois já existe um ciclo em andamento");
-        }
-
         CycleEntity newCycle = CycleEntity.builder()
                 .title(createCycleDto.title())
-                .finishedAt(createCycleDto.finishedAt())
+                .startDate(createCycleDto.startDate())
+                .finishDate(createCycleDto.finishDate())
                 .build();
         cycleRepository.save(newCycle);
         return ResponseEntity.status(HttpStatus.CREATED).build();
