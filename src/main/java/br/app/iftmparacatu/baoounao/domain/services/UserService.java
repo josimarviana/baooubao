@@ -36,6 +36,9 @@ public class UserService {
     @Autowired
     private SecurityConfig securityConfiguration;
 
+    @Autowired
+    EmailService emailService;
+
     // Método responsável por autenticar um usuário e retornar um token JWT
     public RecoveryJwtTokenDto authenticateUser(LoginUserDto loginUserDto) {
         // Cria um objeto de autenticação com o email e a senha do usuári
@@ -57,6 +60,11 @@ public class UserService {
                 .password(securityConfiguration.passwordEncoder().encode(createUserDto.password()))
                 .roles(List.of(roleRepository.findByName(RoleName.ROLE_USER)))
                 .build();
+
+        String subject = "Bem-vindo ao nosso sistema";
+        String body = String.format("Olá %s,\n\nBem-vindo ao nosso sistema! Estamos felizes em tê-lo conosco.\n\nAtenciosamente,\nEquipe", createUserDto.name());
+        emailService.sendEmail(createUserDto.email(), subject, body);
+
         userRepository.save(newUser);
     }
 }
