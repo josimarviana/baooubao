@@ -33,7 +33,7 @@ public class UserEntity implements UserDetails {
     @Column(nullable = false)
     private String password;
     @Column
-    private Boolean active;
+    private boolean active;
     @Column(nullable = false)
     @NotNull
     private LocalDateTime createdAt;
