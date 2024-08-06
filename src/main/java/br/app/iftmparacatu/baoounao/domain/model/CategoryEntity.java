@@ -20,6 +20,8 @@ public class CategoryEntity {
     private LocalDateTime createdAt;
     @Column
     private LocalDateTime finishedAt;
+    @Column
+    String icon;
 
     @PrePersist
     public void prePersist() {
