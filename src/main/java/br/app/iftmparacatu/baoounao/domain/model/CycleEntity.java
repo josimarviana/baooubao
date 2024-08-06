@@ -1,5 +1,6 @@
 package br.app.iftmparacatu.baoounao.domain.model;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.*;
@@ -22,10 +23,11 @@ public class CycleEntity {
     @NotNull
     private String title;
     @Column(nullable = false)
+    private LocalDate startDate;
+    @Column(nullable = false)
+    private LocalDate finishDate;
     @NotNull
     private LocalDateTime createdAt;
-    @Column
-    private LocalDateTime finishedAt;
 
     @PrePersist
     public void prePersist() {

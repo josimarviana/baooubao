@@ -5,10 +5,11 @@ import org.springframework.stereotype.Repository;
 
 import br.app.iftmparacatu.baoounao.domain.model.CycleEntity;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface CycleRepository extends JpaRepository<CycleEntity, Long> {
-    Optional<CycleEntity> findByFinishedAtIsNull();
+    Optional<CycleEntity> findByStartDateLessThanEqualAndFinishDateGreaterThanEqual(LocalDate dateStart, LocalDate dateEnd);
 }

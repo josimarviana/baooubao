@@ -60,7 +60,7 @@ public class ProposalEntity {
             active = true;
         }
         if (situation == null) {
-            situation = Situation.FORWARDED_TO_BOARD;
+            situation = Situation.PENDING_MODERATION;
         }
 
         if(userEntity == null){
