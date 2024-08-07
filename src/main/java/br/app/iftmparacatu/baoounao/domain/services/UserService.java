@@ -1,6 +1,7 @@
 package br.app.iftmparacatu.baoounao.domain.services;
 
 
+import br.app.iftmparacatu.baoounao.api.exception.InactiveUserException;
 import br.app.iftmparacatu.baoounao.config.SecurityConfig;
 import br.app.iftmparacatu.baoounao.domain.dtos.input.CreateUserDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.input.LoginUserDto;
@@ -14,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -47,6 +49,10 @@ public class UserService {
 
         // Obtém o objeto UserDetails do usuário autenticado
         UserEntity userDetails = (UserEntity) authentication.getPrincipal();
+
+        if(!userDetails.isActive()){
+            throw new InactiveUserException("Não foi possível realizar o login, pois este usuário está inativo");
+        }
 
         // Gera um token JWT para o usuário autenticado
         return new RecoveryJwtTokenDto(jwtTokenService.generateToken(userDetails));
