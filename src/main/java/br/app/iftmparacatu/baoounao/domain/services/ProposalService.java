@@ -90,14 +90,16 @@ public class ProposalService {
     };
 
     public List<RecoveryProposalDto> findAll(){
-        List<ProposalEntity> proposals = proposalRepository.findAll();
+        CycleEntity currentCycle = cycleService.findProgressCycle().orElseThrow(() -> new EntityNotFoundException(String.format("Não foram localizados ciclos em andamento")));
+        List<ProposalEntity> proposals = proposalRepository.findAllByCycleEntity(currentCycle);
         return proposals.stream()
                 .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal),RecoveryProposalDto.class))
                 .collect(Collectors.toList());
     }
 
     public ResponseEntity<Object> myProposals(){
-        List<ProposalEntity> proposalEntityList = proposalRepository.findAllByUserEntity(SecurityUtil.getAuthenticatedUser());
+        CycleEntity currentCycle = cycleService.findProgressCycle().orElseThrow(() -> new EntityNotFoundException(String.format("Não foram localizados ciclos em andamento")));
+        List<ProposalEntity> proposalEntityList = proposalRepository.findAllByUserEntityAndCycleEntity(SecurityUtil.getAuthenticatedUser(),currentCycle);
         List <RecoveryProposalDto> recoveryProposalDtoList = proposalEntityList.stream()
                                                              .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal),RecoveryProposalDto.class))
                                                               .collect(Collectors.toList());
