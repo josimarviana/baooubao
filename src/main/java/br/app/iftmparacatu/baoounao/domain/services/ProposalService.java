@@ -21,6 +21,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -65,23 +66,16 @@ public class ProposalService {
     }
 
     public ResponseEntity<Object> save(String tittle,String description,String url,MultipartFile image,String category){
-        Optional<CycleEntity> currentCycle = cycleService.findProgressCycle();
-
-        if(!currentCycle.isPresent()){
-            throw new EntityNotFoundException("Não foram encontrados ciclos em andamento. Para cadastrar uma proposta, é necessário primeiro cadastrar um ciclo.");
-        }
-
+        CycleEntity currentCycle = getCurrentCycle("Não foram encontrados ciclos em andamento. Para cadastrar uma proposta, é necessário primeiro cadastrar um ciclo.");
         try{
             ProposalEntity proposalEntity = new ProposalEntity();
             proposalEntity.setDescription(description);
             proposalEntity.setTitle(tittle);
             proposalEntity.setVideoUrl(url);
             proposalEntity.setImage(image.getBytes());
-            proposalEntity.setCycleEntity(currentCycle.get());
+            proposalEntity.setCycleEntity(currentCycle);
             CategoryEntity categoryEntity = categoryRepository.findByTitle(category);
             proposalEntity.setCategoryEntity(categoryEntity);
-            //TO-DO Add categories, user and to add initial situation on model
-
             proposalRepository.save(proposalEntity);
             return ResponseEntity.status(HttpStatus.CREATED).build();
         }catch (Exception e){
@@ -90,7 +84,7 @@ public class ProposalService {
     };
 
     public List<RecoveryProposalDto> findAll(){
-        CycleEntity currentCycle = cycleService.findProgressCycle().orElseThrow(() -> new EntityNotFoundException(String.format("Não foram localizados ciclos em andamento")));
+        CycleEntity currentCycle = getCurrentCycle();
         List<ProposalEntity> proposals = proposalRepository.findAllByCycleEntityOrderByCreatedAtDesc(currentCycle);
         return proposals.stream()
                 .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal),RecoveryProposalDto.class))
@@ -98,7 +92,7 @@ public class ProposalService {
     }
 
     public ResponseEntity<Object> myProposals(){
-        CycleEntity currentCycle = cycleService.findProgressCycle().orElseThrow(() -> new EntityNotFoundException(String.format("Não foram localizados ciclos em andamento")));
+        CycleEntity currentCycle = getCurrentCycle();
         List<ProposalEntity> proposalEntityList = proposalRepository.findAllByUserEntityAndCycleEntityOrderByCreatedAtDesc(SecurityUtil.getAuthenticatedUser(),currentCycle);
         List <RecoveryProposalDto> recoveryProposalDtoList = proposalEntityList.stream()
                                                              .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal),RecoveryProposalDto.class))
@@ -107,8 +101,9 @@ public class ProposalService {
     }
 
     public ResponseEntity<Object> trendingProposals(){
+        CycleEntity currentCycle = getCurrentCycle();
         PageRequest pageRequest = PageRequest.of(0, 3);
-        List<ProposalEntity> proposalEntityList = proposalRepository.findAllByOrderByVotesDesc(pageRequest).getContent();
+        List<ProposalEntity> proposalEntityList = proposalRepository.findAllByCycleEntityOrderByVotesDesc(pageRequest,currentCycle).getContent();
         List<RecoveryTrendingProposalDto> recoveryProposalDtoList = proposalEntityList.stream()
                                                             .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal),RecoveryTrendingProposalDto.class))
                                                             .collect(Collectors.toList());
@@ -131,5 +126,17 @@ public class ProposalService {
     public ResponseEntity<Object> hasVoted(Long proposalId){
         Optional<ProposalEntity> proposal = Optional.ofNullable(proposalRepository.findById(proposalId).orElseThrow(() -> new EntityNotFoundException(String.format("Proposta de id %d não foi encontrada",proposalId))));
         return ResponseEntity.status(HttpStatus.OK).body(new RecoveryVoteProposalDto(votingService.hasVoted(SecurityUtil.getAuthenticatedUser(),proposal.get())));
+    }
+    public List<ProposalEntity> filterByDescriptionOrTitle(String text){
+        CycleEntity currentCycle = getCurrentCycle();
+        return proposalRepository.findByCycleEntityAndTitleContainingOrCycleEntityAndDescriptionContaining(currentCycle,text,currentCycle,text);
+    }
+
+    private CycleEntity getCurrentCycle(){
+        return cycleService.findProgressCycle().orElseThrow(() -> new EntityNotFoundException(String.format("Não foram localizados ciclos em andamento")));
+    }
+
+    private CycleEntity getCurrentCycle(String message){
+        return cycleService.findProgressCycle().orElseThrow(() -> new EntityNotFoundException(String.format("%s",message)));
     }
 }
