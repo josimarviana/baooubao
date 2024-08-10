@@ -157,9 +157,15 @@ public class ProposalService {
         Optional<ProposalEntity> proposal = Optional.ofNullable(proposalRepository.findById(proposalId).orElseThrow(() -> new EntityNotFoundException(String.format("Proposta de id %d não foi encontrada",proposalId))));
         return ResponseEntity.status(HttpStatus.OK).body(new RecoveryVoteProposalDto(votingService.hasVoted(SecurityUtil.getAuthenticatedUser(),proposal.get())));
     }
-    public List<ProposalEntity> filterByDescriptionOrTitle(String text){
+    public ResponseEntity<Object> filterByDescriptionOrTitle(String text){
         CycleEntity currentCycle = getCurrentCycleOrThrow();
-        return proposalRepository.findByCycleEntityAndTitleContainingOrCycleEntityAndDescriptionContaining(currentCycle,text,currentCycle,text);
+        Situation situation = Situation.OPEN_FOR_VOTING;
+        List<ProposalEntity> proposalEntityList = proposalRepository.findByCycleEntityAndTitleContainingAndSituationOrCycleEntityAndDescriptionContainingAndSituation(currentCycle,text,situation,currentCycle,text,situation);
+
+        List <RecoveryProposalDto> recoveryProposalDtoList = proposalEntityList.stream()
+                .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal),RecoveryProposalDto.class))
+                .collect(Collectors.toList());
+        return ResponseEntity.status(HttpStatus.OK).body(recoveryProposalDtoList);
     }
 
     private CycleEntity getCurrentCycleOrThrow(){

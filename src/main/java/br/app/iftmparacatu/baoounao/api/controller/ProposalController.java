@@ -46,8 +46,7 @@ public class ProposalController {
     }
 
     @GetMapping("/filter")
-    public List<ProposalEntity> filterByDescriptionOrTitle (@RequestParam(value = "contain", required = false) String text ){
-
+    public ResponseEntity<Object> filterByDescriptionOrTitle (@RequestParam(value = "contain", required = false) String text ){
         return proposalService.filterByDescriptionOrTitle(text);
     }
     @GetMapping("/trending")
