@@ -2,7 +2,7 @@ package br.app.iftmparacatu.baoounao.domain.services;
 
 import br.app.iftmparacatu.baoounao.api.exception.EntityNotFoundException;
 import br.app.iftmparacatu.baoounao.api.exception.NotAllowedOperation;
-import br.app.iftmparacatu.baoounao.api.exception.ProposalException;
+import br.app.iftmparacatu.baoounao.domain.dtos.input.UpdateProposalDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryProposalDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryTrendingProposalDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryVoteProposalDto;
@@ -107,14 +107,23 @@ public class ProposalService {
                                                             .collect(Collectors.toList());
         return ResponseEntity.status(HttpStatus.OK).body(recoveryProposalDtoList);
     }
-    public ResponseEntity<Object> update(Long proposalID, ProposalEntity updatedProposal) {
+    public ResponseEntity<Object> update(Long proposalID, UpdateProposalDto updateProposalDto) {
         ProposalEntity existingProposal = checkDeleteOrUpdateProposal(true,proposalID);
-        Optional.ofNullable(updatedProposal.getTitle())
+        Optional.ofNullable(updateProposalDto.title())
                 .ifPresent(existingProposal::setTitle);
-        Optional.ofNullable(updatedProposal.getDescription())
+        Optional.ofNullable(updateProposalDto.description())
                 .ifPresent(existingProposal::setDescription);
-        Optional.ofNullable(updatedProposal.getImage())
+        Optional.ofNullable(updateProposalDto.image())
                 .ifPresent(existingProposal::setImage);
+        proposalRepository.save(existingProposal);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    public ResponseEntity<Object> moderate(Long proposalID, Situation situation) {
+        ProposalEntity existingProposal = proposalRepository.findById(proposalID)
+                .orElseThrow(() -> new EntityNotFoundException(String.format("Proposta de id %d não encontrada!", proposalID)));
+        Optional.ofNullable(situation)
+                .ifPresent(existingProposal::setSituation);
         proposalRepository.save(existingProposal);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
@@ -128,11 +137,11 @@ public class ProposalService {
         boolean fowardedToBoard = existingProposal.getSituation().equals(Situation.FORWARDED_TO_BOARD);
 
         if (openForVoting){
-            throw new ProposalException(String.format("Não é possível %s propostas em votação",operation));
+            throw new NotAllowedOperation(String.format("Não é possível %s propostas em votação",operation));
         }else if (inModeration){
-            throw new ProposalException(String.format("Não é possível %s propostas em moderação",operation));
+            throw new NotAllowedOperation(String.format("Não é possível %s propostas em moderação",operation));
         }else if (fowardedToBoard){
-            throw new ProposalException(String.format("Não é possível %s propostas enviada para o conselho",operation));
+            throw new NotAllowedOperation(String.format("Não é possível %s propostas enviada para o conselho",operation));
         }
 
         return existingProposal;
@@ -148,9 +157,15 @@ public class ProposalService {
         Optional<ProposalEntity> proposal = Optional.ofNullable(proposalRepository.findById(proposalId).orElseThrow(() -> new EntityNotFoundException(String.format("Proposta de id %d não foi encontrada",proposalId))));
         return ResponseEntity.status(HttpStatus.OK).body(new RecoveryVoteProposalDto(votingService.hasVoted(SecurityUtil.getAuthenticatedUser(),proposal.get())));
     }
-    public List<ProposalEntity> filterByDescriptionOrTitle(String text){
+    public ResponseEntity<Object> filterByDescriptionOrTitle(String text){
         CycleEntity currentCycle = getCurrentCycleOrThrow();
-        return proposalRepository.findByCycleEntityAndTitleContainingOrCycleEntityAndDescriptionContaining(currentCycle,text,currentCycle,text);
+        Situation situation = Situation.OPEN_FOR_VOTING;
+        List<ProposalEntity> proposalEntityList = proposalRepository.findByCycleEntityAndTitleContainingAndSituationOrCycleEntityAndDescriptionContainingAndSituation(currentCycle,text,situation,currentCycle,text,situation);
+
+        List <RecoveryProposalDto> recoveryProposalDtoList = proposalEntityList.stream()
+                .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal),RecoveryProposalDto.class))
+                .collect(Collectors.toList());
+        return ResponseEntity.status(HttpStatus.OK).body(recoveryProposalDtoList);
     }
 
     private CycleEntity getCurrentCycleOrThrow(){

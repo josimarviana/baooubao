@@ -19,24 +19,17 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-
     public static final String [] ENDPOINTS_WITH_AUTHENTICATION_NOT_REQUIRED = {
-            "/user/login", // Url que usaremos para fazer login
+            "/user/login",
             "/user",
-            "/proposal/trending"// Url que usaremos para criar um usuário
+            "/proposal/trending"
     };
-
-    // Endpoints que requerem autenticação para serem acessados
     public static final String [] ENDPOINTS_WITH_AUTHENTICATION_REQUIRED = {
-            "/user/test"
+            "/proposal/moderate"
     };
-
-    // Endpoints que só podem ser acessador por usuários com permissão de cliente
     public static final String [] ENDPOINTS_CUSTOMER = {
             "/user/test/customer"
     };
-
-    // Endpoints que só podem ser acessador por usuários com permissão de administrador
     public static final String [] ENDPOINTS_ADMIN = {
             "/cycle",
             "/category"
@@ -59,9 +52,7 @@ public class SecurityConfig {
 
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-             //   .oauth2ResourceServer(spec -> spec.jwt(Customizer.withDefaults()))
                 .httpBasic(Customizer.withDefaults())
-            //    .and().addFilterBefore(userAuthenticationFilter, UserAuthenticationFilter.class)
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
