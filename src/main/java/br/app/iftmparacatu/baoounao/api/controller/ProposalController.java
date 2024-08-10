@@ -67,9 +67,8 @@ public class ProposalController {
 
     @PatchMapping("/{proposalID}")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<RecoveryProposalDto> updateProposal(@PathVariable Long proposalId, @RequestBody ProposalEntity proposalEntity ){
-        RecoveryProposalDto proposalDto = proposalService.update(proposalId,proposalEntity);
-        return ResponseEntity.status(HttpStatus.OK).body(proposalDto);
+    public ResponseEntity<Object> updateProposal(@PathVariable Long proposalID, @RequestBody ProposalEntity proposalEntity ){
+        return proposalService.update(proposalID,proposalEntity);
     }
 
     @GetMapping("/has-voted/{proposalId}")

@@ -9,24 +9,17 @@ import br.app.iftmparacatu.baoounao.domain.enums.Situation;
 import br.app.iftmparacatu.baoounao.domain.model.CategoryEntity;
 import br.app.iftmparacatu.baoounao.domain.model.CycleEntity;
 import br.app.iftmparacatu.baoounao.domain.model.ProposalEntity;
-import br.app.iftmparacatu.baoounao.domain.model.VotingEntity;
 import br.app.iftmparacatu.baoounao.domain.repository.CategoryRepository;
 import br.app.iftmparacatu.baoounao.domain.repository.ProposalRepository;
 import br.app.iftmparacatu.baoounao.domain.util.SecurityUtil;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.internal.bytebuddy.asm.Advice;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -109,19 +102,29 @@ public class ProposalService {
                                                             .collect(Collectors.toList());
         return ResponseEntity.status(HttpStatus.OK).body(recoveryProposalDtoList);
     }
-    public RecoveryProposalDto update(Long proposalID, ProposalEntity proposalEntity) {
-        if (proposalEntity.getSituation().equals(Situation.OPEN_FOR_VOTING)){
-            throw new ProposalException("Não é possível atualizar propostas em votação");
-        } else {
-            ProposalEntity existingProposal = proposalRepository.findById(proposalID)
-                    .orElseThrow(() -> new ProposalException("Proposta não encontrada com o ID: " + proposalID));
+    public ResponseEntity<Object> update(Long proposalID, ProposalEntity updatedProposal) {
+        ProposalEntity existingProposal = proposalRepository.findById(proposalID)
+                .orElseThrow(() -> new EntityNotFoundException(String.format("Proposta de id %d não encontrada!", proposalID)));
+        boolean openForVoting = existingProposal.getSituation().equals(Situation.OPEN_FOR_VOTING);
+        boolean inModeration = existingProposal.getSituation().equals(Situation.IN_MODERATION);
+        if (openForVoting || inModeration)
+            throw new ProposalException((openForVoting ? "Não é possível atualizar propostas em votação" : "Não é possível atualizar proposta em moderação"));
 
-            BeanUtils.copyProperties(proposalEntity, existingProposal, "id");
-            proposalRepository.save(existingProposal); // Certifique-se de salvar a entidade atualizada
-
-            return this.mapToDto(existingProposal);
-        }
+        Optional.ofNullable(updatedProposal.getTitle())
+                .ifPresent(existingProposal::setTitle);
+        Optional.ofNullable(updatedProposal.getDescription())
+                .ifPresent(existingProposal::setDescription);
+        Optional.ofNullable(updatedProposal.getImage())
+                .ifPresent(existingProposal::setImage);
+        proposalRepository.save(existingProposal);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
+
+//    public void delete(Long proposalID) {
+//        ProposalEntity existingProposal = proposalRepository.findById(proposalID)
+//                .orElseThrow(() -> new EntityNotFoundException(String.format("Proposta de id %d não encontrada!", proposalID)));
+//        proposalRepository.delete(existingProposal);
+//    }
 
     public ResponseEntity<Object> hasVoted(Long proposalId){
         Optional<ProposalEntity> proposal = Optional.ofNullable(proposalRepository.findById(proposalId).orElseThrow(() -> new EntityNotFoundException(String.format("Proposta de id %d não foi encontrada",proposalId))));
