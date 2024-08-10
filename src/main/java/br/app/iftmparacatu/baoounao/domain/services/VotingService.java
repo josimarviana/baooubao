@@ -1,7 +1,7 @@
 package br.app.iftmparacatu.baoounao.domain.services;
 
 import br.app.iftmparacatu.baoounao.api.exception.EntityNotFoundException;
-import br.app.iftmparacatu.baoounao.api.exception.VoteNotAllowedException;
+import br.app.iftmparacatu.baoounao.api.exception.NotAllowedOperation;
 import br.app.iftmparacatu.baoounao.domain.dtos.input.VotingDto;
 import br.app.iftmparacatu.baoounao.domain.model.*;
 import br.app.iftmparacatu.baoounao.domain.repository.VotingRepository;
@@ -11,8 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -38,10 +36,10 @@ public class VotingService {
         Long userVotesCurrentProposal = votingRepository.countByUserEntityAndProposalEntity(currentUser,votingDto.proposalEntity());
 
         if(userVotesCurrentProposal != 0){
-            throw new VoteNotAllowedException("Você já votou nesta proposta. Não é permitido votar mais de uma vez na mesma proposta.");
+            throw new NotAllowedOperation("Você já votou nesta proposta. Não é permitido votar mais de uma vez na mesma proposta.");
         }
         if (userVotesCurrentCycle == 3){ //TODO: tavlez fique interessante parametrizar a quantidade de votos por ciclo em uma configuração do sistema
-            throw new VoteNotAllowedException("Você atingiu o limite máximo de 3 votos para o ciclo atual. Não é permitido votar em mais do que 3 propostas.");
+            throw new NotAllowedOperation("Você atingiu o limite máximo de 3 votos para o ciclo atual. Não é permitido votar em mais do que 3 propostas.");
         }
 
 

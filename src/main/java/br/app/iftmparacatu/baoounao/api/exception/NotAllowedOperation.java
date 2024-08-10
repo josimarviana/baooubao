@@ -1,8 +1,8 @@
 package br.app.iftmparacatu.baoounao.api.exception;
 
-public class VoteNotAllowedException extends RuntimeException {
+public class NotAllowedOperation extends RuntimeException {
     private static final long serialVersionUID = 1L;
-    public VoteNotAllowedException(String message){
+    public NotAllowedOperation(String message){
         super(message);
     }
 }

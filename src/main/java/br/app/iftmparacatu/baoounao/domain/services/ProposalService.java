@@ -1,6 +1,7 @@
 package br.app.iftmparacatu.baoounao.domain.services;
 
 import br.app.iftmparacatu.baoounao.api.exception.EntityNotFoundException;
+import br.app.iftmparacatu.baoounao.api.exception.NotAllowedOperation;
 import br.app.iftmparacatu.baoounao.api.exception.ProposalException;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryProposalDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryTrendingProposalDto;
@@ -59,7 +60,11 @@ public class ProposalService {
     }
 
     public ResponseEntity<Object> save(String tittle,String description,String url,MultipartFile image,String category){
-        CycleEntity currentCycle = getCurrentCycle("Não foram encontrados ciclos em andamento. Para cadastrar uma proposta, é necessário primeiro cadastrar um ciclo.");
+        CycleEntity currentCycle = getCurrentCycleOrThrow("Não foram encontrados ciclos em andamento. Para cadastrar uma proposta, é necessário primeiro cadastrar um ciclo.");
+
+        if(proposalRepository.countByUserEntityAndCycleEntity(SecurityUtil.getAuthenticatedUser(),currentCycle) == 3)
+            throw new NotAllowedOperation("O limite de 3 propostas foi atingido. Não é possível cadastrar mais propostas.");
+
         try{
             ProposalEntity proposalEntity = new ProposalEntity();
             proposalEntity.setDescription(description);
@@ -77,7 +82,7 @@ public class ProposalService {
     };
 
     public List<RecoveryProposalDto> findAll(){
-        CycleEntity currentCycle = getCurrentCycle();
+        CycleEntity currentCycle = getCurrentCycleOrThrow();
         List<ProposalEntity> proposals = proposalRepository.findAllByCycleEntityOrderByCreatedAtDesc(currentCycle);
         return proposals.stream()
                 .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal),RecoveryProposalDto.class))
@@ -85,7 +90,7 @@ public class ProposalService {
     }
 
     public ResponseEntity<Object> myProposals(){
-        CycleEntity currentCycle = getCurrentCycle();
+        CycleEntity currentCycle = getCurrentCycleOrThrow();
         List<ProposalEntity> proposalEntityList = proposalRepository.findAllByUserEntityAndCycleEntityOrderByCreatedAtDesc(SecurityUtil.getAuthenticatedUser(),currentCycle);
         List <RecoveryProposalDto> recoveryProposalDtoList = proposalEntityList.stream()
                                                              .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal),RecoveryProposalDto.class))
@@ -94,7 +99,7 @@ public class ProposalService {
     }
 
     public ResponseEntity<Object> trendingProposals(){
-        CycleEntity currentCycle = getCurrentCycle();
+        CycleEntity currentCycle = getCurrentCycleOrThrow();
         PageRequest pageRequest = PageRequest.of(0, 3);
         List<ProposalEntity> proposalEntityList = proposalRepository.findAllByCycleEntityOrderByVotesDesc(pageRequest,currentCycle).getContent();
         List<RecoveryTrendingProposalDto> recoveryProposalDtoList = proposalEntityList.stream()
@@ -144,15 +149,15 @@ public class ProposalService {
         return ResponseEntity.status(HttpStatus.OK).body(new RecoveryVoteProposalDto(votingService.hasVoted(SecurityUtil.getAuthenticatedUser(),proposal.get())));
     }
     public List<ProposalEntity> filterByDescriptionOrTitle(String text){
-        CycleEntity currentCycle = getCurrentCycle();
+        CycleEntity currentCycle = getCurrentCycleOrThrow();
         return proposalRepository.findByCycleEntityAndTitleContainingOrCycleEntityAndDescriptionContaining(currentCycle,text,currentCycle,text);
     }
 
-    private CycleEntity getCurrentCycle(){
+    private CycleEntity getCurrentCycleOrThrow(){
         return cycleService.findProgressCycle().orElseThrow(() -> new EntityNotFoundException(String.format("Não foram localizados ciclos em andamento")));
     }
 
-    private CycleEntity getCurrentCycle(String message){
+    private CycleEntity getCurrentCycleOrThrow(String message){
         return cycleService.findProgressCycle().orElseThrow(() -> new EntityNotFoundException(String.format("%s",message)));
     }
 }
