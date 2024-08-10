@@ -12,7 +12,7 @@ import java.util.List;
 
 @Repository
 public interface ProposalRepository extends JpaRepository<ProposalEntity,Long> {
-    List<ProposalEntity> findByDescriptionContaining(String text);
+    Long countByUserEntityAndCycleEntity(UserEntity userEntity, CycleEntity cycleEntity);
     List<ProposalEntity> findByCycleEntityAndTitleContainingOrCycleEntityAndDescriptionContaining(CycleEntity cycleEntity, String text1, CycleEntity cycleEntity2, String text2);
     Page<ProposalEntity> findAllByCycleEntityOrderByVotesDesc(Pageable pageable,CycleEntity cycleEntity);
     List<ProposalEntity> findAllByCycleEntityOrderByCreatedAtDesc(CycleEntity cycleEntity);
