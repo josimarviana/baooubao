@@ -1,29 +1,16 @@
 package br.app.iftmparacatu.baoounao.domain.services;
 
 import br.app.iftmparacatu.baoounao.api.exception.EntityNotFoundException;
-import br.app.iftmparacatu.baoounao.api.exception.ProgressCycleException;
-import br.app.iftmparacatu.baoounao.api.exception.ProposalException;
 import br.app.iftmparacatu.baoounao.domain.dtos.input.CreateCycleDto;
-import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryProposalDto;
-import br.app.iftmparacatu.baoounao.domain.enums.RoleName;
-import br.app.iftmparacatu.baoounao.domain.enums.Situation;
 import br.app.iftmparacatu.baoounao.domain.model.*;
-import br.app.iftmparacatu.baoounao.domain.repository.CategoryRepository;
 import br.app.iftmparacatu.baoounao.domain.repository.CycleRepository;
-import br.app.iftmparacatu.baoounao.domain.repository.ProposalRepository;
-import br.app.iftmparacatu.baoounao.domain.util.SecurityUtil;
-import org.modelmapper.ModelMapper;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class CycleService {

@@ -2,7 +2,6 @@ package br.app.iftmparacatu.baoounao.domain.services;
 
 import br.app.iftmparacatu.baoounao.api.exception.EntityNotFoundException;
 import br.app.iftmparacatu.baoounao.api.exception.NotAllowedOperation;
-import br.app.iftmparacatu.baoounao.api.exception.ProposalException;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryProposalDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryTrendingProposalDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryVoteProposalDto;
@@ -128,11 +127,11 @@ public class ProposalService {
         boolean fowardedToBoard = existingProposal.getSituation().equals(Situation.FORWARDED_TO_BOARD);
 
         if (openForVoting){
-            throw new ProposalException(String.format("Não é possível %s propostas em votação",operation));
+            throw new NotAllowedOperation(String.format("Não é possível %s propostas em votação",operation));
         }else if (inModeration){
-            throw new ProposalException(String.format("Não é possível %s propostas em moderação",operation));
+            throw new NotAllowedOperation(String.format("Não é possível %s propostas em moderação",operation));
         }else if (fowardedToBoard){
-            throw new ProposalException(String.format("Não é possível %s propostas enviada para o conselho",operation));
+            throw new NotAllowedOperation(String.format("Não é possível %s propostas enviada para o conselho",operation));
         }
 
         return existingProposal;
