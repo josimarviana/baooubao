@@ -75,4 +75,9 @@ public class ProposalController {
     public ResponseEntity<Object> hasVoted (@PathVariable Long proposalId ){
         return proposalService.hasVoted(proposalId);
     }
+
+    @DeleteMapping("/{proposalID}")
+    public ResponseEntity<Object> deleteProposal(@PathVariable Long proposalID) {
+        return proposalService.delete(proposalID);
+    }
 }

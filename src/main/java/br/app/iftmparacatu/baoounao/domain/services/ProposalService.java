@@ -103,13 +103,7 @@ public class ProposalService {
         return ResponseEntity.status(HttpStatus.OK).body(recoveryProposalDtoList);
     }
     public ResponseEntity<Object> update(Long proposalID, ProposalEntity updatedProposal) {
-        ProposalEntity existingProposal = proposalRepository.findById(proposalID)
-                .orElseThrow(() -> new EntityNotFoundException(String.format("Proposta de id %d não encontrada!", proposalID)));
-        boolean openForVoting = existingProposal.getSituation().equals(Situation.OPEN_FOR_VOTING);
-        boolean inModeration = existingProposal.getSituation().equals(Situation.IN_MODERATION);
-        if (openForVoting || inModeration)
-            throw new ProposalException((openForVoting ? "Não é possível atualizar propostas em votação" : "Não é possível atualizar proposta em moderação"));
-
+        ProposalEntity existingProposal = checkDeleteOrUpdateProposal(true,proposalID);
         Optional.ofNullable(updatedProposal.getTitle())
                 .ifPresent(existingProposal::setTitle);
         Optional.ofNullable(updatedProposal.getDescription())
@@ -120,11 +114,30 @@ public class ProposalService {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-//    public void delete(Long proposalID) {
-//        ProposalEntity existingProposal = proposalRepository.findById(proposalID)
-//                .orElseThrow(() -> new EntityNotFoundException(String.format("Proposta de id %d não encontrada!", proposalID)));
-//        proposalRepository.delete(existingProposal);
-//    }
+    private ProposalEntity checkDeleteOrUpdateProposal(boolean update, Long proposalID){
+        String operation = update ? "atualizar" : "apagar";
+        ProposalEntity existingProposal = proposalRepository.findById(proposalID)
+                .orElseThrow(() -> new EntityNotFoundException(String.format("Proposta de id %d não encontrada!", proposalID)));
+        boolean openForVoting = existingProposal.getSituation().equals(Situation.OPEN_FOR_VOTING);
+        boolean inModeration = existingProposal.getSituation().equals(Situation.IN_MODERATION);
+        boolean fowardedToBoard = existingProposal.getSituation().equals(Situation.FORWARDED_TO_BOARD);
+
+        if (openForVoting){
+            throw new ProposalException(String.format("Não é possível %s propostas em votação",operation));
+        }else if (inModeration){
+            throw new ProposalException(String.format("Não é possível %s propostas em moderação",operation));
+        }else if (fowardedToBoard){
+            throw new ProposalException(String.format("Não é possível %s propostas enviada para o conselho",operation));
+        }
+
+        return existingProposal;
+    }
+
+    public ResponseEntity<Object> delete(Long proposalID) {
+        ProposalEntity existingProposal = checkDeleteOrUpdateProposal(false,proposalID);
+        proposalRepository.delete(existingProposal);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
 
     public ResponseEntity<Object> hasVoted(Long proposalId){
         Optional<ProposalEntity> proposal = Optional.ofNullable(proposalRepository.findById(proposalId).orElseThrow(() -> new EntityNotFoundException(String.format("Proposta de id %d não foi encontrada",proposalId))));
