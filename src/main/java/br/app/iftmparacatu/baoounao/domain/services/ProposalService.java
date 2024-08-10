@@ -2,6 +2,7 @@ package br.app.iftmparacatu.baoounao.domain.services;
 
 import br.app.iftmparacatu.baoounao.api.exception.EntityNotFoundException;
 import br.app.iftmparacatu.baoounao.api.exception.NotAllowedOperation;
+import br.app.iftmparacatu.baoounao.domain.dtos.input.UpdateProposalDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryProposalDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryTrendingProposalDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryVoteProposalDto;
@@ -106,14 +107,23 @@ public class ProposalService {
                                                             .collect(Collectors.toList());
         return ResponseEntity.status(HttpStatus.OK).body(recoveryProposalDtoList);
     }
-    public ResponseEntity<Object> update(Long proposalID, ProposalEntity updatedProposal) {
+    public ResponseEntity<Object> update(Long proposalID, UpdateProposalDto updateProposalDto) {
         ProposalEntity existingProposal = checkDeleteOrUpdateProposal(true,proposalID);
-        Optional.ofNullable(updatedProposal.getTitle())
+        Optional.ofNullable(updateProposalDto.title())
                 .ifPresent(existingProposal::setTitle);
-        Optional.ofNullable(updatedProposal.getDescription())
+        Optional.ofNullable(updateProposalDto.description())
                 .ifPresent(existingProposal::setDescription);
-        Optional.ofNullable(updatedProposal.getImage())
+        Optional.ofNullable(updateProposalDto.image())
                 .ifPresent(existingProposal::setImage);
+        proposalRepository.save(existingProposal);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    public ResponseEntity<Object> moderate(Long proposalID, Situation situation) {
+        ProposalEntity existingProposal = proposalRepository.findById(proposalID)
+                .orElseThrow(() -> new EntityNotFoundException(String.format("Proposta de id %d não encontrada!", proposalID)));
+        Optional.ofNullable(situation)
+                .ifPresent(existingProposal::setSituation);
         proposalRepository.save(existingProposal);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
