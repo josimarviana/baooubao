@@ -20,5 +20,6 @@ public interface ProposalRepository extends JpaRepository<ProposalEntity,Long> {
     Page<ProposalEntity> findAllByCycleEntityOrderByVotesDesc(Pageable pageable,CycleEntity cycleEntity);
     List<ProposalEntity> findByCycleEntityAndSituationOrderByCreatedAtDesc(CycleEntity cycleEntity, Situation situation);
     List<ProposalEntity> findAllByUserEntityAndCycleEntityOrderByCreatedAtDesc(UserEntity userEntity,CycleEntity cycleEntity);
+    Long countBySituationAndCycleEntity(Situation situation, CycleEntity cycleEntity);
 
 }

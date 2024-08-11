@@ -4,7 +4,6 @@ package br.app.iftmparacatu.baoounao.api.controller;
 import br.app.iftmparacatu.baoounao.domain.dtos.input.UpdateProposalDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryProposalDto;
 import br.app.iftmparacatu.baoounao.domain.enums.Situation;
-import br.app.iftmparacatu.baoounao.domain.model.ProposalEntity;
 import br.app.iftmparacatu.baoounao.domain.repository.ProposalRepository;
 import br.app.iftmparacatu.baoounao.domain.services.ProposalService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,5 +87,10 @@ public class ProposalController {
     @DeleteMapping("/{proposalID}")
     public ResponseEntity<Object> deleteProposal(@PathVariable Long proposalID) {
         return proposalService.delete(proposalID);
+    }
+
+    @GetMapping("/dashboard")
+    public ResponseEntity<Object> count(){
+        return proposalService.dashboardCount();
     }
 }

@@ -3,6 +3,7 @@ package br.app.iftmparacatu.baoounao.domain.services;
 import br.app.iftmparacatu.baoounao.api.exception.EntityNotFoundException;
 import br.app.iftmparacatu.baoounao.api.exception.NotAllowedOperation;
 import br.app.iftmparacatu.baoounao.domain.dtos.input.UpdateProposalDto;
+import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryDashboardInformationtDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryProposalDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryTrendingProposalDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryVoteProposalDto;
@@ -10,6 +11,7 @@ import br.app.iftmparacatu.baoounao.domain.enums.Situation;
 import br.app.iftmparacatu.baoounao.domain.model.CategoryEntity;
 import br.app.iftmparacatu.baoounao.domain.model.CycleEntity;
 import br.app.iftmparacatu.baoounao.domain.model.ProposalEntity;
+import br.app.iftmparacatu.baoounao.domain.model.UserEntity;
 import br.app.iftmparacatu.baoounao.domain.repository.CategoryRepository;
 import br.app.iftmparacatu.baoounao.domain.repository.ProposalRepository;
 import br.app.iftmparacatu.baoounao.domain.util.ResponseUtil;
@@ -186,5 +188,21 @@ public class ProposalService {
 
     private CycleEntity getCurrentCycleOrThrow(String message){
         return cycleService.findProgressCycle().orElseThrow(() -> new EntityNotFoundException(String.format("%s",message)));
+    }
+
+    public ResponseEntity<Object> dashboardCount(){
+        CycleEntity currentCycle = getCurrentCycleOrThrow();
+        Long openProposals = proposalRepository.countBySituationAndCycleEntity(Situation.PENDING_MODERATION,currentCycle);
+        Long totalVotes = votingService.countByCycleEntity(currentCycle);
+        Long deniedProposals = proposalRepository.countBySituationAndCycleEntity(Situation.DENIED,currentCycle);
+        Long acceptedProposals = proposalRepository.countBySituationAndCycleEntity(Situation.OPEN_FOR_VOTING,currentCycle);
+
+        RecoveryDashboardInformationtDto recoveryDashboardInformationtDto = RecoveryDashboardInformationtDto.builder()
+                .openProposals(openProposals)
+                .votes(totalVotes)
+                .deniedProposals(deniedProposals)
+                .acceptedProposals(acceptedProposals)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(recoveryDashboardInformationtDto);
     }
 }

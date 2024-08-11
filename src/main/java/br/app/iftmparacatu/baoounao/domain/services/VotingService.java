@@ -57,4 +57,8 @@ public class VotingService {
         return ResponseUtil.createSuccessResponse("Voto cancelado com sucesso!",HttpStatus.NO_CONTENT);
     }
 
+    public Long countByCycleEntity(CycleEntity cycleEntity){
+        return  votingRepository.countByProposalEntityCycleEntity(cycleEntity);
+    }
+
 }
