@@ -67,9 +67,9 @@ public class UserService {
                 .roles(List.of(roleRepository.findByName(RoleName.ROLE_USER)))
                 .build();
 
-        String subject = "Bem-vindo ao nosso sistema";
-        String body = String.format("Olá %s,\n\nBem-vindo ao nosso sistema! Estamos felizes em tê-lo conosco.\n\nAtenciosamente,\nEquipe", createUserDto.name());
-        emailService.sendEmail(createUserDto.email(), subject, body);
+//        String subject = "Bem-vindo ao nosso sistema";
+//        String body = String.format("Olá %s,\n\nBem-vindo ao nosso sistema! Estamos felizes em tê-lo conosco.\n\nAtenciosamente,\nEquipe", createUserDto.name());
+//        emailService.sendEmail(createUserDto.email(), subject, body);
 
         userRepository.save(newUser);
     }
