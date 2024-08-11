@@ -28,20 +28,23 @@ public class CycleService {
 //    }
 
     public ResponseEntity<Object> save(CreateCycleDto createCycleDto){
-        Optional<CycleEntity> currentCycle = findProgressCycle();
+        Optional<CycleEntity> overlappingCycle = findOverlappingCycle(createCycleDto.startDate(),createCycleDto.finishDate());
+        if (overlappingCycle.isPresent()) {
+            CycleEntity foundedCycle = overlappingCycle.get();
+            throw new NotAllowedOperation(String.format(
+                    "Cadastro do ciclo não permitido: já existe um ciclo em andamento para a data atual. O ciclo '%s' ocorrerá de %s a %s.",
+                    foundedCycle.getTitle(),
+                    foundedCycle.getStartDate(),
+                    foundedCycle.getFinishDate()
+            ));
+        }
 
-        if (currentCycle.isPresent()) {
-            CycleEntity progressCycle = currentCycle.get(); //Ciclo em progresso atual.
-            Optional<CycleEntity> overlappingCycle = findOverlappingCycle(createCycleDto.startDate(),createCycleDto.finishDate());
-
-            if (overlappingCycle.isPresent()){
-                throw new NotAllowedOperation(String.format(
-                        "Cadastro do ciclo não permitido: já existe um ciclo em andamento para a data atual. O ciclo '%s' ocorrerá de %s a %s.",
-                        progressCycle.getTitle(),
-                        progressCycle.getStartDate(),
-                        progressCycle.getFinishDate()
-                ));
-            }
+        if (createCycleDto.startDate().isAfter(createCycleDto.finishDate())) {
+            throw new NotAllowedOperation(String.format(
+                    "Cadastro do ciclo não permitido: a data de início (%s) é posterior à data de término (%s).",
+                    createCycleDto.startDate(),
+                    createCycleDto.finishDate()
+            ));
         }
 
         CycleEntity newCycle = CycleEntity.builder()
