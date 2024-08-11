@@ -17,4 +17,6 @@ public interface VotingRepository extends JpaRepository<VotingEntity,Long> {
     Long countByUserEntityAndProposalEntityCycleEntity(UserEntity userEntity, CycleEntity cycleEntity);
 
     Optional<VotingEntity> findFirstByUserEntityAndProposalEntity(UserEntity userEntity, ProposalEntity proposalEntity);
+
+    Long countByProposalEntityCycleEntity(CycleEntity cycleEntity);
 }
