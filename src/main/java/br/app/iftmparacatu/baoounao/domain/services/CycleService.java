@@ -1,6 +1,7 @@
 package br.app.iftmparacatu.baoounao.domain.services;
 
 import br.app.iftmparacatu.baoounao.api.exception.EntityNotFoundException;
+import br.app.iftmparacatu.baoounao.api.exception.NotAllowedOperation;
 import br.app.iftmparacatu.baoounao.domain.dtos.input.CreateCycleDto;
 import br.app.iftmparacatu.baoounao.domain.model.*;
 import br.app.iftmparacatu.baoounao.domain.repository.CycleRepository;
@@ -22,14 +23,45 @@ public class CycleService {
         return cycleRepository.findByStartDateLessThanEqualAndFinishDateGreaterThanEqual(date,date);
     }
 
+//    public Optional<CycleEntity> findProgressCycle(LocalDate startDate, LocalDate finishDate){
+//        return cycleRepository.findByStartDateLessThanEqualAndFinishDateGreaterThanEqual(startDate,finishDate);
+//    }
+
     public ResponseEntity<Object> save(CreateCycleDto createCycleDto){
+        Optional<CycleEntity> currentCycle = findProgressCycle();
+
+        if (currentCycle.isPresent()) {
+            CycleEntity progressCycle = currentCycle.get(); //Ciclo em progresso atual.
+            Optional<CycleEntity> overlappingCycle = findOverlappingCycle(createCycleDto.startDate(),createCycleDto.finishDate());
+
+            if (overlappingCycle.isPresent()){
+                throw new NotAllowedOperation(String.format(
+                        "Cadastro do ciclo não permitido: já existe um ciclo em andamento para a data atual. O ciclo '%s' ocorrerá de %s a %s.",
+                        progressCycle.getTitle(),
+                        progressCycle.getStartDate(),
+                        progressCycle.getFinishDate()
+                ));
+            }
+        }
+
         CycleEntity newCycle = CycleEntity.builder()
                 .title(createCycleDto.title())
                 .startDate(createCycleDto.startDate())
                 .finishDate(createCycleDto.finishDate())
                 .build();
         cycleRepository.save(newCycle);
+
+
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    public Optional<CycleEntity> findOverlappingCycle(LocalDate dateStart, LocalDate dateEnd) {
+        return cycleRepository.findByStartDateLessThanEqualAndFinishDateGreaterThanEqualOrStartDateBetweenOrFinishDateBetween(
+                dateEnd,
+                dateStart,
+                dateStart, dateEnd,
+                dateStart, dateEnd
+        );
     }
     public ResponseEntity<Object> findById(Long cycleID){
         Optional<CycleEntity> cycleEntity = Optional.ofNullable(cycleRepository.findById(cycleID).orElseThrow(() -> new EntityNotFoundException("REGISTRO NÃO ENCONTRADO!")));
