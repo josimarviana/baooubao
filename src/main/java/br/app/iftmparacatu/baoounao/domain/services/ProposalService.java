@@ -12,6 +12,7 @@ import br.app.iftmparacatu.baoounao.domain.model.CycleEntity;
 import br.app.iftmparacatu.baoounao.domain.model.ProposalEntity;
 import br.app.iftmparacatu.baoounao.domain.repository.CategoryRepository;
 import br.app.iftmparacatu.baoounao.domain.repository.ProposalRepository;
+import br.app.iftmparacatu.baoounao.domain.util.ResponseUtil;
 import br.app.iftmparacatu.baoounao.domain.util.SecurityUtil;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -75,7 +77,8 @@ public class ProposalService {
             CategoryEntity categoryEntity = categoryRepository.findByTitle(category);
             proposalEntity.setCategoryEntity(categoryEntity);
             proposalRepository.save(proposalEntity);
-            return ResponseEntity.status(HttpStatus.CREATED).build();
+
+            return ResponseUtil.createSuccessResponse("Proposta salva com sucesso !!",HttpStatus.CREATED);
         }catch (Exception e){
             throw  new RuntimeException(e);
         }
@@ -116,7 +119,8 @@ public class ProposalService {
         Optional.ofNullable(updateProposalDto.image())
                 .ifPresent(existingProposal::setImage);
         proposalRepository.save(existingProposal);
-        return ResponseEntity.status(HttpStatus.OK).build();
+
+        return ResponseUtil.createSuccessResponse("Proposta atualizada com sucesso !!",HttpStatus.OK);
     }
 
     public ResponseEntity<Object> moderate(Long proposalID, Situation situation) {
@@ -125,7 +129,15 @@ public class ProposalService {
         Optional.ofNullable(situation)
                 .ifPresent(existingProposal::setSituation);
         proposalRepository.save(existingProposal);
-        return ResponseEntity.status(HttpStatus.OK).build();
+
+        Map<Situation, String> responseMessages = Map.of(
+                Situation.OPEN_FOR_VOTING, "Aprovada",
+                Situation.DENIED, "Negada",
+                Situation.FORWARDED_TO_BOARD, "Encaminhada ao Conselho"
+        );
+
+        String responseText = responseMessages.getOrDefault(situation, "");
+        return ResponseUtil.createSuccessResponse(String.format("Proposta %s com sucesso !!",responseText),HttpStatus.OK);
     }
 
     private ProposalEntity checkDeleteOrUpdateProposal(boolean update, Long proposalID){
@@ -150,7 +162,7 @@ public class ProposalService {
     public ResponseEntity<Object> delete(Long proposalID) {
         ProposalEntity existingProposal = checkDeleteOrUpdateProposal(false,proposalID);
         proposalRepository.delete(existingProposal);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        return ResponseUtil.createSuccessResponse("Proposta deletada com sucesso !!",HttpStatus.NO_CONTENT);
     }
 
     public ResponseEntity<Object> hasVoted(Long proposalId){

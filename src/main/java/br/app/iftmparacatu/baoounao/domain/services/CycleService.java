@@ -5,6 +5,7 @@ import br.app.iftmparacatu.baoounao.api.exception.NotAllowedOperation;
 import br.app.iftmparacatu.baoounao.domain.dtos.input.CreateCycleDto;
 import br.app.iftmparacatu.baoounao.domain.model.*;
 import br.app.iftmparacatu.baoounao.domain.repository.CycleRepository;
+import br.app.iftmparacatu.baoounao.domain.util.ResponseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,10 +23,6 @@ public class CycleService {
         LocalDate date = LocalDate.now();
         return cycleRepository.findByStartDateLessThanEqualAndFinishDateGreaterThanEqual(date,date);
     }
-
-//    public Optional<CycleEntity> findProgressCycle(LocalDate startDate, LocalDate finishDate){
-//        return cycleRepository.findByStartDateLessThanEqualAndFinishDateGreaterThanEqual(startDate,finishDate);
-//    }
 
     public ResponseEntity<Object> save(CreateCycleDto createCycleDto){
         Optional<CycleEntity> overlappingCycle = findOverlappingCycle(createCycleDto.startDate(),createCycleDto.finishDate());
@@ -53,9 +50,7 @@ public class CycleService {
                 .finishDate(createCycleDto.finishDate())
                 .build();
         cycleRepository.save(newCycle);
-
-
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return ResponseUtil.createSuccessResponse("Ciclo cadastrado com sucesso !!",HttpStatus.CREATED);
     }
 
     public Optional<CycleEntity> findOverlappingCycle(LocalDate dateStart, LocalDate dateEnd) {
