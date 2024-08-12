@@ -1,10 +1,12 @@
 package br.app.iftmparacatu.baoounao.domain.model;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 
 @Entity
 @Data
+@Builder
 public class NotificationEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -16,9 +18,16 @@ public class NotificationEntity {
     @ManyToOne
     private NotificationTypeEntity type;
     @Column
-    private String mensagem;
-    @Column
     private boolean entregue;
 
+@PrePersist
+public void prePersist() {
+    this.entregue = false;
 
+}
+
+    public NotificationEntity(UserEntity user, NotificationTypeEntity type) {
+        this.user = user;
+        this.type = type;
+    }
 }
