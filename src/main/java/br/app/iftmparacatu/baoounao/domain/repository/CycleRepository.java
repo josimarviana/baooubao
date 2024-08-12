@@ -12,4 +12,10 @@ import java.util.Optional;
 @Repository
 public interface CycleRepository extends JpaRepository<CycleEntity, Long> {
     Optional<CycleEntity> findByStartDateLessThanEqualAndFinishDateGreaterThanEqual(LocalDate dateStart, LocalDate dateEnd);
+
+    Optional<CycleEntity> findByStartDateLessThanEqualAndFinishDateGreaterThanEqualOrStartDateBetweenOrFinishDateBetween(
+            LocalDate dateStart,
+            LocalDate dateEnd,
+            LocalDate startDateRangeStart, LocalDate startDateRangeEnd,
+            LocalDate finishDateRangeStart, LocalDate finishDateRangeEnd);
 }

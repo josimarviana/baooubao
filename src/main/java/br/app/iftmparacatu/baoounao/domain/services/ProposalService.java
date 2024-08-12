@@ -3,6 +3,7 @@ package br.app.iftmparacatu.baoounao.domain.services;
 import br.app.iftmparacatu.baoounao.api.exception.EntityNotFoundException;
 import br.app.iftmparacatu.baoounao.api.exception.NotAllowedOperation;
 import br.app.iftmparacatu.baoounao.domain.dtos.input.UpdateProposalDto;
+import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryDashboardInformationtDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryProposalDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryTrendingProposalDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryVoteProposalDto;
@@ -10,8 +11,10 @@ import br.app.iftmparacatu.baoounao.domain.enums.Situation;
 import br.app.iftmparacatu.baoounao.domain.model.CategoryEntity;
 import br.app.iftmparacatu.baoounao.domain.model.CycleEntity;
 import br.app.iftmparacatu.baoounao.domain.model.ProposalEntity;
+import br.app.iftmparacatu.baoounao.domain.model.UserEntity;
 import br.app.iftmparacatu.baoounao.domain.repository.CategoryRepository;
 import br.app.iftmparacatu.baoounao.domain.repository.ProposalRepository;
+import br.app.iftmparacatu.baoounao.domain.util.ResponseUtil;
 import br.app.iftmparacatu.baoounao.domain.util.SecurityUtil;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -75,7 +79,8 @@ public class ProposalService {
             CategoryEntity categoryEntity = categoryRepository.findByTitle(category);
             proposalEntity.setCategoryEntity(categoryEntity);
             proposalRepository.save(proposalEntity);
-            return ResponseEntity.status(HttpStatus.CREATED).build();
+
+            return ResponseUtil.createSuccessResponse("Proposta salva com sucesso !!",HttpStatus.CREATED);
         }catch (Exception e){
             throw  new RuntimeException(e);
         }
@@ -83,7 +88,7 @@ public class ProposalService {
 
     public List<RecoveryProposalDto> findAll(){ //Este endpoint lista todas as propostas pendentes de moderação
         CycleEntity currentCycle = getCurrentCycleOrThrow();
-        List<ProposalEntity> proposals = proposalRepository.findAllByCycleEntityAndSituationOrderByCreatedAtDesc(currentCycle,Situation.PENDING_MODERATION);
+        List<ProposalEntity> proposals = proposalRepository.findByCycleEntityAndSituationOrderByCreatedAtDesc(currentCycle,Situation.PENDING_MODERATION);
         return proposals.stream()
                 .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal),RecoveryProposalDto.class))
                 .collect(Collectors.toList());
@@ -116,7 +121,8 @@ public class ProposalService {
         Optional.ofNullable(updateProposalDto.image())
                 .ifPresent(existingProposal::setImage);
         proposalRepository.save(existingProposal);
-        return ResponseEntity.status(HttpStatus.OK).build();
+
+        return ResponseUtil.createSuccessResponse("Proposta atualizada com sucesso !!",HttpStatus.OK);
     }
 
     public ResponseEntity<Object> moderate(Long proposalID, Situation situation) {
@@ -125,7 +131,15 @@ public class ProposalService {
         Optional.ofNullable(situation)
                 .ifPresent(existingProposal::setSituation);
         proposalRepository.save(existingProposal);
-        return ResponseEntity.status(HttpStatus.OK).build();
+
+        Map<Situation, String> responseMessages = Map.of(
+                Situation.OPEN_FOR_VOTING, "Aprovada",
+                Situation.DENIED, "Negada",
+                Situation.FORWARDED_TO_BOARD, "Encaminhada ao Conselho"
+        );
+
+        String responseText = responseMessages.getOrDefault(situation, "");
+        return ResponseUtil.createSuccessResponse(String.format("Proposta %s com sucesso !!",responseText),HttpStatus.OK);
     }
 
     private ProposalEntity checkDeleteOrUpdateProposal(boolean update, Long proposalID){
@@ -150,7 +164,7 @@ public class ProposalService {
     public ResponseEntity<Object> delete(Long proposalID) {
         ProposalEntity existingProposal = checkDeleteOrUpdateProposal(false,proposalID);
         proposalRepository.delete(existingProposal);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        return ResponseUtil.createSuccessResponse("Proposta deletada com sucesso !!",HttpStatus.NO_CONTENT);
     }
 
     public ResponseEntity<Object> hasVoted(Long proposalId){
@@ -174,5 +188,21 @@ public class ProposalService {
 
     private CycleEntity getCurrentCycleOrThrow(String message){
         return cycleService.findProgressCycle().orElseThrow(() -> new EntityNotFoundException(String.format("%s",message)));
+    }
+
+    public ResponseEntity<Object> dashboardCount(){
+        CycleEntity currentCycle = getCurrentCycleOrThrow();
+        Long openProposals = proposalRepository.countBySituationAndCycleEntity(Situation.PENDING_MODERATION,currentCycle);
+        Long totalVotes = votingService.countByCycleEntity(currentCycle);
+        Long deniedProposals = proposalRepository.countBySituationAndCycleEntity(Situation.DENIED,currentCycle);
+        Long acceptedProposals = proposalRepository.countBySituationAndCycleEntity(Situation.OPEN_FOR_VOTING,currentCycle);
+
+        RecoveryDashboardInformationtDto recoveryDashboardInformationtDto = RecoveryDashboardInformationtDto.builder()
+                .openProposals(openProposals)
+                .votes(totalVotes)
+                .deniedProposals(deniedProposals)
+                .acceptedProposals(acceptedProposals)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(recoveryDashboardInformationtDto);
     }
 }

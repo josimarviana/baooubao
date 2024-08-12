@@ -4,6 +4,7 @@ import br.app.iftmparacatu.baoounao.api.exception.EntityNotFoundException;
 import br.app.iftmparacatu.baoounao.domain.model.CategoryEntity;
 import br.app.iftmparacatu.baoounao.domain.model.ProposalEntity;
 import br.app.iftmparacatu.baoounao.domain.repository.CategoryRepository;
+import br.app.iftmparacatu.baoounao.domain.util.ResponseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,12 +26,12 @@ public class CategoryService {
         Optional.of(updatedCategory.isActive())
                 .ifPresent(existingCategory::setActive);
         categoryRepository.save(existingCategory);
-        return ResponseEntity.status(HttpStatus.OK).build();
+        return ResponseUtil.createSuccessResponse("Categoria atualizada com sucesso !!",HttpStatus.OK);
     }
 
     public ResponseEntity<Object> save(CategoryEntity categoryEntity){
         categoryRepository.save(categoryEntity);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return ResponseUtil.createSuccessResponse("Categoria salva com sucesso !!",HttpStatus.CREATED);
     }
 
     public ResponseEntity<Object> findById(Long categoryID){

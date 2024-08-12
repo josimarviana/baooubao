@@ -5,6 +5,7 @@ import br.app.iftmparacatu.baoounao.api.exception.NotAllowedOperation;
 import br.app.iftmparacatu.baoounao.domain.dtos.input.VotingDto;
 import br.app.iftmparacatu.baoounao.domain.model.*;
 import br.app.iftmparacatu.baoounao.domain.repository.VotingRepository;
+import br.app.iftmparacatu.baoounao.domain.util.ResponseUtil;
 import br.app.iftmparacatu.baoounao.domain.util.SecurityUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -47,13 +48,17 @@ public class VotingService {
                 .proposalEntity(votingDto.proposalEntity())
                 .build();
         votingRepository.save(newVoting);
-       return ResponseEntity.status(HttpStatus.CREATED).build();
+        return ResponseUtil.createSuccessResponse("Voto registrado com sucesso!",HttpStatus.CREATED);
     }
 
     public ResponseEntity<Object> remove(VotingDto votingDto){
         Optional<VotingEntity> vote = Optional.ofNullable(votingRepository.findFirstByUserEntityAndProposalEntity(SecurityUtil.getAuthenticatedUser(), votingDto.proposalEntity()).orElseThrow(() -> new EntityNotFoundException("Não foram encontrado votos para esta proposta")));
         votingRepository.delete(vote.get());
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        return ResponseUtil.createSuccessResponse("Voto cancelado com sucesso!",HttpStatus.NO_CONTENT);
+    }
+
+    public Long countByCycleEntity(CycleEntity cycleEntity){
+        return  votingRepository.countByProposalEntityCycleEntity(cycleEntity);
     }
 
 }
