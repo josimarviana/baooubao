@@ -2,6 +2,7 @@ package br.app.iftmparacatu.baoounao.domain.services;
 
 import br.app.iftmparacatu.baoounao.api.exception.EntityNotFoundException;
 import br.app.iftmparacatu.baoounao.domain.model.CategoryEntity;
+import br.app.iftmparacatu.baoounao.domain.model.CycleEntity;
 import br.app.iftmparacatu.baoounao.domain.model.ProposalEntity;
 import br.app.iftmparacatu.baoounao.domain.repository.CategoryRepository;
 import br.app.iftmparacatu.baoounao.domain.util.ResponseUtil;
@@ -48,5 +49,13 @@ public class CategoryService {
     public ResponseEntity<Object> findAllActive(){
         List<CategoryEntity> categoryEntityList = categoryRepository.findAllByActiveTrue();
         return ResponseEntity.status(HttpStatus.OK).body(categoryEntityList);
+    }
+
+    public ResponseEntity<Object> delete(Long categoryID) {
+        CategoryEntity existingCategory = categoryRepository.findById(categoryID)
+                .orElseThrow(() -> new EntityNotFoundException(String.format("Categoria de id %d não encontrada!", categoryID)));
+        existingCategory.setActive(false);
+        categoryRepository.save(existingCategory);
+        return ResponseUtil.createSuccessResponse("Categoria desativada com sucesso !!",HttpStatus.NO_CONTENT);
     }
 }
