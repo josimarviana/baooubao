@@ -88,7 +88,7 @@ public class ProposalService {
 
     public List<RecoveryProposalDto> findAll(){ //Este endpoint lista todas as propostas pendentes de moderação
         CycleEntity currentCycle = getCurrentCycleOrThrow();
-        List<ProposalEntity> proposals = proposalRepository.findByCycleEntityAndSituationOrderByCreatedAtDesc(currentCycle,Situation.PENDING_MODERATION);
+        List<ProposalEntity> proposals = proposalRepository.findByCycleEntityAndSituationAndActiveTrueOrderByCreatedAtDesc(currentCycle,Situation.PENDING_MODERATION);
         return proposals.stream()
                 .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal),RecoveryProposalDto.class))
                 .collect(Collectors.toList());
@@ -96,7 +96,7 @@ public class ProposalService {
 
     public ResponseEntity<Object> myProposals(){
         CycleEntity currentCycle = getCurrentCycleOrThrow();
-        List<ProposalEntity> proposalEntityList = proposalRepository.findAllByUserEntityAndCycleEntityOrderByCreatedAtDesc(SecurityUtil.getAuthenticatedUser(),currentCycle);
+        List<ProposalEntity> proposalEntityList = proposalRepository.findAllByUserEntityAndCycleEntityAndActiveTrueOrderByCreatedAtDesc(SecurityUtil.getAuthenticatedUser(),currentCycle);
         List <RecoveryProposalDto> recoveryProposalDtoList = proposalEntityList.stream()
                                                              .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal),RecoveryProposalDto.class))
                                                               .collect(Collectors.toList());

@@ -72,7 +72,7 @@ public class CycleService {
         return ResponseEntity.status(HttpStatus.CREATED).body(cycleEntity.get());
     }
     public ResponseEntity<Object> findAll(){
-        return ResponseEntity.status(HttpStatus.OK).body(cycleRepository.findAll());
+        return ResponseEntity.status(HttpStatus.OK).body(cycleRepository.findByActiveTrue());
     }
 
     public ResponseEntity<Object> update(Long cycleID, CreateCycleDto updatedCycleDto) {

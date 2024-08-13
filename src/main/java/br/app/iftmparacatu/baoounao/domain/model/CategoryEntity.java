@@ -19,8 +19,6 @@ public class CategoryEntity {
     @NotNull
     private LocalDateTime createdAt;
     @Column
-    private LocalDateTime finishedAt;
-    @Column
     String icon;
 
     @PrePersist
