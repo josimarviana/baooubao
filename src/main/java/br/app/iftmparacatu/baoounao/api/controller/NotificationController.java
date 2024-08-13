@@ -2,6 +2,7 @@ package br.app.iftmparacatu.baoounao.api.controller;
 import br.app.iftmparacatu.baoounao.domain.model.CycleEntity;
 import br.app.iftmparacatu.baoounao.domain.model.NotificationEntity;
 import br.app.iftmparacatu.baoounao.domain.repository.NotificationRepository;
+import br.app.iftmparacatu.baoounao.domain.services.NotificationService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,13 +16,16 @@ public class NotificationController {
     @Autowired
     private NotificationRepository notificationRepository;
 
+    @Autowired
+    private NotificationService notificationService;
+
     @GetMapping
     public List<NotificationEntity> list(){return notificationRepository.findAll();}
 
 
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public NotificationEntity save(@RequestBody @Valid NotificationEntity notificationEntity) {
-        return notificationRepository.save(notificationEntity);
-    }
+//    @PostMapping
+//    @ResponseStatus(HttpStatus.CREATED)
+//    public NotificationEntity save() {
+//        return notificationService.cadastrar());
+//    }
 }

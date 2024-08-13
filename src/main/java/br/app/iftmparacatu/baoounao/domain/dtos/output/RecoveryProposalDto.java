@@ -15,5 +15,6 @@ public class RecoveryProposalDto {
     private int likes;
     private String category;
     private String situation;
+    private String videoUrl;
     private LocalDateTime createdAt;
 }
