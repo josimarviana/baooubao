@@ -1,0 +1,1 @@
+ALTER TABLE cycle_entity ADD COLUMN active bit;

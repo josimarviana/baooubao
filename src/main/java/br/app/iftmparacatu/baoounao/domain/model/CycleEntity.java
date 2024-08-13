@@ -28,7 +28,7 @@ public class CycleEntity {
     private LocalDate finishDate;
     @NotNull
     private LocalDateTime createdAt;
-
+    private Boolean active;
     @PrePersist
     public void prePersist() {
         if (createdAt == null) {

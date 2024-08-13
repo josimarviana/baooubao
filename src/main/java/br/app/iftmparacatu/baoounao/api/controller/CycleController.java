@@ -1,6 +1,7 @@
 package br.app.iftmparacatu.baoounao.api.controller;
 
 import br.app.iftmparacatu.baoounao.domain.dtos.input.CreateCycleDto;
+import br.app.iftmparacatu.baoounao.domain.model.CategoryEntity;
 import br.app.iftmparacatu.baoounao.domain.model.CycleEntity;
 import br.app.iftmparacatu.baoounao.domain.repository.CycleRepository;
 import br.app.iftmparacatu.baoounao.domain.services.CycleService;
@@ -31,5 +32,15 @@ public class CycleController {
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<Object> save(@RequestBody @Valid CreateCycleDto createCycleDto) {
         return cycleService.save(createCycleDto);
+    }
+
+    @PatchMapping("/{cycleID}")
+    public ResponseEntity<Object> updateCycle(@PathVariable Long cycleID, @RequestBody CreateCycleDto createCycleDto ){
+        return cycleService.update(cycleID,createCycleDto);
+    }
+
+    @DeleteMapping("/{cycleID}")
+    public ResponseEntity<Object> deleteCycle(@PathVariable Long cycleID){
+        return cycleService.delete(cycleID);
     }
 }
