@@ -66,7 +66,7 @@ public class ProposalService {
     public ResponseEntity<Object> save(String tittle,String description,String url,MultipartFile image,String category){
         CycleEntity currentCycle = getCurrentCycleOrThrow("Não foram encontrados ciclos em andamento. Para cadastrar uma proposta, é necessário primeiro cadastrar um ciclo.");
 
-        if(proposalRepository.countByUserEntityAndCycleEntity(SecurityUtil.getAuthenticatedUser(),currentCycle) == 3)
+        if(proposalRepository.countByUserEntityAndCycleEntityAndActiveTrue(SecurityUtil.getAuthenticatedUser(),currentCycle) == 3)
             throw new NotAllowedOperation("O limite de 3 propostas foi atingido. Não é possível cadastrar mais propostas.");
 
         try{
