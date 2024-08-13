@@ -21,7 +21,7 @@ public class CycleService {
 
     public Optional<CycleEntity> findProgressCycle(){
         LocalDate date = LocalDate.now();
-        return cycleRepository.findByStartDateLessThanEqualAndFinishDateGreaterThanEqual(date,date);
+        return cycleRepository.findByStartDateLessThanEqualAndFinishDateGreaterThanEqualAndActiveTrue(date,date);
     }
 
     private void checkUpdateOrCreateCycle(boolean update, CreateCycleDto createCycleDto){
@@ -60,7 +60,7 @@ public class CycleService {
     }
 
     public Optional<CycleEntity> findOverlappingCycle(LocalDate dateStart, LocalDate dateEnd) {
-        return cycleRepository.findByStartDateLessThanEqualAndFinishDateGreaterThanEqualOrStartDateBetweenOrFinishDateBetween(
+        return cycleRepository.findByStartDateLessThanEqualAndFinishDateGreaterThanEqualOrStartDateBetweenOrFinishDateBetweenAndActiveTrue(
                 dateEnd,
                 dateStart,
                 dateStart, dateEnd,
