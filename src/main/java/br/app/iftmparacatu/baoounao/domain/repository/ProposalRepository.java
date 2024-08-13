@@ -13,7 +13,7 @@ import java.util.List;
 
 @Repository
 public interface ProposalRepository extends JpaRepository<ProposalEntity,Long> {
-    Long countByUserEntityAndCycleEntity(UserEntity userEntity, CycleEntity cycleEntity);
+    Long countByUserEntityAndCycleEntityAndActiveTrue(UserEntity userEntity, CycleEntity cycleEntity);
     List<ProposalEntity> findByCycleEntityAndTitleContainingAndSituationOrCycleEntityAndDescriptionContainingAndSituation(
             CycleEntity cycleEntity1, String text1, Situation situation1,
             CycleEntity cycleEntity2, String text2, Situation situation2);
