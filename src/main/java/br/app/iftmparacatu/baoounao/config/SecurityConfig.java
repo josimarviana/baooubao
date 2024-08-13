@@ -22,7 +22,9 @@ public class SecurityConfig {
     public static final String [] ENDPOINTS_WITH_AUTHENTICATION_NOT_REQUIRED = {
             "/user/login",
             "/user",
+            "/user/token",
             "/proposal/trending"
+
     };
     public static final String [] ENDPOINTS_WITH_AUTHENTICATION_REQUIRED = {
             "/proposal/moderate"

@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/user")
@@ -64,6 +65,18 @@ public class UserController {
     public ResponseEntity<String> getAdminAuthenticationTest() {
         return new ResponseEntity<>("Administrador autenticado com sucesso", HttpStatus.OK);
     }
+
+    @GetMapping("/token/{token}")
+    public ResponseEntity<String> validationUser(@PathVariable String token) {
+        Map<Boolean, ResponseEntity<String>> responseMap = Map.of(
+                true, ResponseEntity.ok("Cadastro ativado"),
+                false, ResponseEntity.badRequest().body("Token inválido ou expirado")
+        );
+
+        return responseMap.get(userService.validateUser(token));
+    }
+
+
 }
 
 

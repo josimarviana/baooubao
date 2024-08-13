@@ -1,12 +1,14 @@
 package br.app.iftmparacatu.baoounao.domain.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
 @Entity
 @Data
 @Builder
+@AllArgsConstructor
 public class NotificationEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

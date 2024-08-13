@@ -11,14 +11,19 @@ import br.app.iftmparacatu.baoounao.domain.model.RoleEntity;
 import br.app.iftmparacatu.baoounao.domain.model.UserEntity;
 import br.app.iftmparacatu.baoounao.domain.repository.RoleRepository;
 import br.app.iftmparacatu.baoounao.domain.repository.UserRepository;
+import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 
+import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserService {
@@ -40,6 +45,9 @@ public class UserService {
 
     @Autowired
     EmailService emailService;
+
+    @Autowired
+    ConfirmTokenService confirmationTokenService;
 
     // Método responsável por autenticar um usuário e retornar um token JWT
     public RecoveryJwtTokenDto authenticateUser(LoginUserDto loginUserDto) {
@@ -67,10 +75,24 @@ public class UserService {
                 .roles(List.of(roleRepository.findByName(RoleName.ROLE_USER)))
                 .build();
 
-        String subject = "Bem-vindo ao nosso sistema";
-        String body = String.format("Olá %s,\n\nBem-vindo ao nosso sistema! Estamos felizes em tê-lo conosco.\n\nAtenciosamente,\nEquipe", createUserDto.name());
-        emailService.sendEmail(createUserDto.email(), subject, body);
+        try {
+            emailService.enviarEmailDeConfirmacao(createUserDto.email(), createUserDto.name(),"http://localhost:8080/user/token/" + confirmationTokenService.salvar(newUser).getToken());
+        } catch (MessagingException e) {
+            throw new RuntimeException(e);
+        }
 
         userRepository.save(newUser);
     }
+
+    public Optional<UserEntity> validateUser(String token) {
+        return confirmationTokenService.validation(token)
+                .map(t -> {
+                    UserEntity user = t.getUser();
+                    user.setActive(true);
+                    userRepository.save(user); // Salva as alterações no usuário
+                    confirmationTokenService.delete(t); // Remove o token após a confirmação
+                    return user;
+                });
+    }
+
 }
