@@ -75,24 +75,26 @@ public class UserService {
                 .roles(List.of(roleRepository.findByName(RoleName.ROLE_USER)))
                 .build();
 
+        userRepository.save(newUser);
         try {
             emailService.enviarEmailDeConfirmacao(createUserDto.email(), createUserDto.name(),"http://localhost:8080/user/token/" + confirmationTokenService.salvar(newUser).getToken());
         } catch (MessagingException e) {
             throw new RuntimeException(e);
         }
-
-        userRepository.save(newUser);
     }
 
-    public Optional<UserEntity> validateUser(String token) {
+
+
+    public ResponseEntity<String> validateUser(String token) {
         return confirmationTokenService.validation(token)
                 .map(t -> {
                     UserEntity user = t.getUser();
                     user.setActive(true);
-                    userRepository.save(user); // Salva as alterações no usuário
-                    confirmationTokenService.delete(t); // Remove o token após a confirmação
-                    return user;
-                });
+                    userRepository.save(user);
+                    confirmationTokenService.delete(t);
+                    return ResponseEntity.ok("Cadastro ativado");
+                })
+                .orElseGet(() -> ResponseEntity.badRequest().body("Token inválido ou expirado"));
     }
 
 }

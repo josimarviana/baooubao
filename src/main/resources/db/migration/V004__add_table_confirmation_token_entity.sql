@@ -1,0 +1,2 @@
+create table confirmation_token_entity (created_date datetime(6), expiry_date datetime(6), id bigint not null auto_increment, user_id bigint, token varchar(255), primary key (id)) engine=InnoDB;
+alter table if exists confirmation_token_entity add constraint FKf7xm48x2cxyrv023e4lkr18ld foreign key (user_id) references user_entity (id);

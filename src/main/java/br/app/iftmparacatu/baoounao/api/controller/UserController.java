@@ -68,12 +68,7 @@ public class UserController {
 
     @GetMapping("/token/{token}")
     public ResponseEntity<String> validationUser(@PathVariable String token) {
-        Map<Boolean, ResponseEntity<String>> responseMap = Map.of(
-                true, ResponseEntity.ok("Cadastro ativado"),
-                false, ResponseEntity.badRequest().body("Token inválido ou expirado")
-        );
-
-        return responseMap.get(userService.validateUser(token));
+        return userService.validateUser(token);
     }
 
 

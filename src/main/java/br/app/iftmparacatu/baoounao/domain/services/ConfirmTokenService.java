@@ -30,8 +30,7 @@ public class ConfirmTokenService {
                .expiryDate(LocalDateTime.now().plusHours(24))
                .user(user)
                .build();
-
-        return token;
+        return confirmationTokenRepository.save(token);
     }
     public Optional<ConfirmationTokenEntity> validation(String token) {
         return Optional.ofNullable(confirmationTokenRepository.findByToken(token))
