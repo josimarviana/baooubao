@@ -147,13 +147,10 @@ public class ProposalService {
         ProposalEntity existingProposal = proposalRepository.findById(proposalID)
                 .orElseThrow(() -> new EntityNotFoundException(String.format("Proposta de id %d não encontrada!", proposalID)));
         boolean openForVoting = existingProposal.getSituation().equals(Situation.OPEN_FOR_VOTING);
-        boolean inModeration = existingProposal.getSituation().equals(Situation.IN_MODERATION);
         boolean fowardedToBoard = existingProposal.getSituation().equals(Situation.FORWARDED_TO_BOARD);
 
         if (openForVoting){
             throw new NotAllowedOperation(String.format("Não é possível %s propostas em votação",operation));
-        }else if (inModeration){
-            throw new NotAllowedOperation(String.format("Não é possível %s propostas em moderação",operation));
         }else if (fowardedToBoard){
             throw new NotAllowedOperation(String.format("Não é possível %s propostas enviada para o conselho",operation));
         }
@@ -163,8 +160,9 @@ public class ProposalService {
 
     public ResponseEntity<Object> delete(Long proposalID) {
         ProposalEntity existingProposal = checkDeleteOrUpdateProposal(false,proposalID);
-        proposalRepository.delete(existingProposal);
-        return ResponseUtil.createSuccessResponse("Proposta deletada com sucesso !!",HttpStatus.NO_CONTENT);
+        existingProposal.setActive(false);
+        proposalRepository.save(existingProposal);
+        return ResponseUtil.createSuccessResponse("Proposta desativada com sucesso !!",HttpStatus.NO_CONTENT);
     }
 
     public ResponseEntity<Object> hasVoted(Long proposalId){

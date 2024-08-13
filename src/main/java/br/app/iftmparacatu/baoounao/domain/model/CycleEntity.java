@@ -34,6 +34,9 @@ public class CycleEntity {
         if (createdAt == null) {
             createdAt = LocalDateTime.now();
         }
+        if (active == null) {
+            active = true;
+        }
     }
 
 }
