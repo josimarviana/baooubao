@@ -1,5 +1,6 @@
 package br.app.iftmparacatu.baoounao.domain.model;
 
+import br.app.iftmparacatu.baoounao.domain.enums.Situation;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -10,8 +11,11 @@ public class NotificationTypeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column
-    private String  type;
+    private Situation situation;
+    @Column
+    private String mensagem;
     @Column
     private boolean active;
+
 
 }

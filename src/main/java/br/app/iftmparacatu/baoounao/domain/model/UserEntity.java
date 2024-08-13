@@ -47,7 +47,7 @@ public class UserEntity implements UserDetails {
     public void prePersist() {
         if (createdAt == null) {
             createdAt = LocalDateTime.now();
-            active = true;
+            active = false;
         }
     }
 
