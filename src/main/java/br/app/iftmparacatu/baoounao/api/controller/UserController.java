@@ -67,7 +67,7 @@ public class UserController {
     }
 
     @GetMapping("/token/{token}")
-    public ResponseEntity<String> validationUser(@PathVariable String token) {
+    public ResponseEntity<Object> validationUser(@PathVariable String token) {
         return userService.validateUser(token);
     }
 
