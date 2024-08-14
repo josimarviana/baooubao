@@ -15,3 +15,9 @@ alter table if exists user_roles add constraint FKh83ux1f9i6ch6gie5xtj5mqnt fore
 alter table if exists user_roles add constraint FK6y02653x6ebhsu2plf21ard62 foreign key (user_id) references user_entity (id);
 alter table if exists voting_entity add constraint FKro9nt8tj8srxqfqq462esu7eo foreign key (proposal_entity_id) references proposal_entity (id);
 alter table if exists voting_entity add constraint FKhp3l3cm3brs4t6b0cp48r59m1 foreign key (user_entity_id) references user_entity (id);
+
+insert into role_entity(name) values ('ROLE_ADMINISTRATOR');
+insert into role_entity(name) values ('ROLE_USER');
+insert into user_entity(name,email,type,password,active,created_at) VALUES ('adm','adm@iftmparacatu.app.br','ESTUDANTE','$2a$10$6UxFC1Kbp9t2Qvzl1r.vLOEwKaTAuo3AsdR7RUQOJ4fZL45yjZuVq',true,'2024-03-14');
+insert into user_roles(role_id,user_id) values (1,1);
+insert into user_roles(role_id,user_id) values (2,1);
