@@ -17,7 +17,7 @@ public interface ProposalRepository extends JpaRepository<ProposalEntity,Long> {
     List<ProposalEntity> findByCycleEntityAndTitleContainingAndSituationOrCycleEntityAndDescriptionContainingAndSituation(
             CycleEntity cycleEntity1, String text1, Situation situation1,
             CycleEntity cycleEntity2, String text2, Situation situation2);
-    Page<ProposalEntity> findAllByCycleEntityAndActiveTrueOrderByVotesDesc(Pageable pageable,CycleEntity cycleEntity);
+    Page<ProposalEntity> findAllByCycleEntityAndActiveTrueAndVotesGreaterThanOrderByVotesDesc(Pageable pageable, CycleEntity cycleEntity, int votes);
     List<ProposalEntity> findByCycleEntityAndSituationAndActiveTrueOrderByCreatedAtDesc(CycleEntity cycleEntity, Situation situation);
 
     List<ProposalEntity> findByCycleEntity(CycleEntity cycleEntity);
