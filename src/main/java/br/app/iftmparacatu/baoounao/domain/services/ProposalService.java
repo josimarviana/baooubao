@@ -69,6 +69,7 @@ public class ProposalService {
         if(proposalRepository.countByUserEntityAndCycleEntityAndActiveTrue(SecurityUtil.getAuthenticatedUser(),currentCycle) == 3)
             throw new NotAllowedOperation("O limite de 3 propostas foi atingido. Não é possível cadastrar mais propostas.");
 
+        CategoryEntity categoryEntity = categoryRepository.findByTitleAndActiveTrue(category).orElseThrow(() -> new EntityNotFoundException(String.format("Categoria de nome %s não encontrada!", category)));
         try{
             ProposalEntity proposalEntity = new ProposalEntity();
             proposalEntity.setDescription(description);
@@ -76,7 +77,6 @@ public class ProposalService {
             proposalEntity.setVideoUrl(url);
             proposalEntity.setImage(image.getBytes());
             proposalEntity.setCycleEntity(currentCycle);
-            CategoryEntity categoryEntity = categoryRepository.findByTitle(category);
             proposalEntity.setCategoryEntity(categoryEntity);
             proposalRepository.save(proposalEntity);
 

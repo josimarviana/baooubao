@@ -1,6 +1,8 @@
 package br.app.iftmparacatu.baoounao.domain.services;
 
 import br.app.iftmparacatu.baoounao.api.exception.EntityNotFoundException;
+import br.app.iftmparacatu.baoounao.api.exception.NotAllowedOperation;
+import br.app.iftmparacatu.baoounao.domain.dtos.input.CreateCategoryDto;
 import br.app.iftmparacatu.baoounao.domain.model.CategoryEntity;
 import br.app.iftmparacatu.baoounao.domain.model.CycleEntity;
 import br.app.iftmparacatu.baoounao.domain.model.ProposalEntity;
@@ -24,14 +26,25 @@ public class CategoryService {
                 .orElseThrow(() -> new EntityNotFoundException(String.format("Categoria de id %d não encontrada!", categoryID)));
         Optional.ofNullable(updatedCategory.getTitle())
                 .ifPresent(existingCategory::setTitle);
-        Optional.of(updatedCategory.isActive())
+        Optional.of(updatedCategory.getActive())
                 .ifPresent(existingCategory::setActive);
         categoryRepository.save(existingCategory);
         return ResponseUtil.createSuccessResponse("Categoria atualizada com sucesso !!",HttpStatus.OK);
     }
 
-    public ResponseEntity<Object> save(CategoryEntity categoryEntity){
-        categoryRepository.save(categoryEntity);
+    public ResponseEntity<Object> save(CreateCategoryDto createCategoryDto){
+        Optional<CategoryEntity> existingCategory = categoryRepository.findByTitleAndActiveTrue(createCategoryDto.title());
+
+        if(existingCategory.isPresent()){
+            throw new NotAllowedOperation(String.format("Categoria %s já foi cadastrada !!",createCategoryDto.title()));
+        }
+
+        CategoryEntity saveCategory = CategoryEntity.builder()
+                .title(createCategoryDto.title())
+                .icon(createCategoryDto.icon())
+                .build();
+
+        categoryRepository.save(saveCategory);
         return ResponseUtil.createSuccessResponse("Categoria salva com sucesso !!",HttpStatus.CREATED);
     }
 
