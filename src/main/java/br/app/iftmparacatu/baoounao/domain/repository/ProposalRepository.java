@@ -13,13 +13,15 @@ import java.util.List;
 
 @Repository
 public interface ProposalRepository extends JpaRepository<ProposalEntity,Long> {
-    Long countByUserEntityAndCycleEntity(UserEntity userEntity, CycleEntity cycleEntity);
+    Long countByUserEntityAndCycleEntityAndActiveTrue(UserEntity userEntity, CycleEntity cycleEntity);
     List<ProposalEntity> findByCycleEntityAndTitleContainingAndSituationOrCycleEntityAndDescriptionContainingAndSituation(
             CycleEntity cycleEntity1, String text1, Situation situation1,
             CycleEntity cycleEntity2, String text2, Situation situation2);
-    Page<ProposalEntity> findAllByCycleEntityOrderByVotesDesc(Pageable pageable,CycleEntity cycleEntity);
-    List<ProposalEntity> findByCycleEntityAndSituationOrderByCreatedAtDesc(CycleEntity cycleEntity, Situation situation);
-    List<ProposalEntity> findAllByUserEntityAndCycleEntityOrderByCreatedAtDesc(UserEntity userEntity,CycleEntity cycleEntity);
+    Page<ProposalEntity> findAllByCycleEntityAndActiveTrueAndVotesGreaterThanOrderByVotesDesc(Pageable pageable, CycleEntity cycleEntity, int votes);
+    List<ProposalEntity> findByCycleEntityAndSituationAndActiveTrueOrderByCreatedAtDesc(CycleEntity cycleEntity, Situation situation);
+
+    List<ProposalEntity> findByCycleEntity(CycleEntity cycleEntity);
+    List<ProposalEntity> findAllByUserEntityAndCycleEntityAndActiveTrueOrderByCreatedAtDesc(UserEntity userEntity,CycleEntity cycleEntity);
     Long countBySituationAndCycleEntity(Situation situation, CycleEntity cycleEntity);
 
 }

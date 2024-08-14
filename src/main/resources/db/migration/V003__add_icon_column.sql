@@ -1,1 +1,0 @@
-ALTER TABLE category_entity ADD COLUMN icon varchar(255);

@@ -1,10 +1,12 @@
-create table category_entity (active bit, created_at datetime(6) not null, finished_at datetime(6), id bigint not null auto_increment, title varchar(100), primary key (id)) engine=InnoDB;
-create table cycle_entity (finish_date date not null, start_date date not null, created_at datetime(6) not null, id bigint not null auto_increment, title varchar(100) not null, primary key (id)) engine=InnoDB;
-create table proposal_entity (active bit, likes integer, category_entity_id bigint, created_at datetime(6), cycle_entity_id bigint, id bigint not null auto_increment, user_entity_id bigint, title varchar(100), video_url varchar(100), description varchar(255), image LONGBLOB, situation enum ('OPEN_FOR_VOTING','FORWARDED_TO_BOARD','APPROVED','DENIED','PENDING_MODERATION'), primary key (id)) engine=InnoDB;
+create table category_entity (id bigint not null auto_increment, title varchar(100),icon varchar(255),active bit, created_at datetime(6) not null, primary key (id)) engine=InnoDB;
+create table cycle_entity (id bigint not null auto_increment,finish_date date not null, start_date date not null, title varchar(100) not null,active bit,created_at datetime(6) not null, primary key (id)) engine=InnoDB;
+create table proposal_entity (id bigint not null auto_increment, likes integer, category_entity_id bigint, cycle_entity_id bigint, user_entity_id bigint, title varchar(100), video_url varchar(100), description varchar(255), image LONGBLOB, situation enum ('OPEN_FOR_VOTING','FORWARDED_TO_BOARD','APPROVED','DENIED','PENDING_MODERATION'),active bit,created_at datetime(6), primary key (id)) engine=InnoDB;
 create table role_entity (id bigint not null auto_increment, name enum ('ROLE_USER','ROLE_ADMINISTRATOR'), primary key (id)) engine=InnoDB;
 create table user_roles (role_id bigint not null, user_id bigint not null) engine=InnoDB;
-create table user_entity (active bit, created_at datetime(6) not null, id bigint not null auto_increment, email varchar(255) not null, name varchar(255) not null, password varchar(255) not null, type enum ('DOCENTE','TAE','ESTUDANTE') not null, primary key (id)) engine=InnoDB;
-create table voting_entity (created_at datetime(6) not null, id bigint not null auto_increment, proposal_entity_id bigint, user_entity_id bigint, primary key (id)) engine=InnoDB;
+create table user_entity (id bigint not null auto_increment, email varchar(255) not null, name varchar(255) not null, password varchar(255) not null, type enum ('DOCENTE','TAE','ESTUDANTE') not null,active bit,created_at datetime(6) not null, primary key (id)) engine=InnoDB;
+create table voting_entity (id bigint not null auto_increment,created_at datetime(6) not null,proposal_entity_id bigint, user_entity_id bigint, primary key (id)) engine=InnoDB;
+create table confirmation_token_entity (id bigint not null auto_increment,created_date datetime(6), expiry_date datetime(6), user_id bigint, token varchar(255), primary key (id)) engine=InnoDB;
+alter table if exists confirmation_token_entity add constraint FKf7xm48x2cxyrv023e4lkr18ld foreign key (user_id) references user_entity (id);
 alter table if exists user_entity add constraint UK_4xad1enskw4j1t2866f7sodrx unique (email);
 alter table if exists proposal_entity add constraint FK925c4prmhditn6tm5hjuos6yd foreign key (category_entity_id) references category_entity (id);
 alter table if exists proposal_entity add constraint FKqbt0am5xum8apf1maor4mkr5v foreign key (cycle_entity_id) references cycle_entity (id);
@@ -13,3 +15,9 @@ alter table if exists user_roles add constraint FKh83ux1f9i6ch6gie5xtj5mqnt fore
 alter table if exists user_roles add constraint FK6y02653x6ebhsu2plf21ard62 foreign key (user_id) references user_entity (id);
 alter table if exists voting_entity add constraint FKro9nt8tj8srxqfqq462esu7eo foreign key (proposal_entity_id) references proposal_entity (id);
 alter table if exists voting_entity add constraint FKhp3l3cm3brs4t6b0cp48r59m1 foreign key (user_entity_id) references user_entity (id);
+
+insert into role_entity(name) values ('ROLE_ADMINISTRATOR');
+insert into role_entity(name) values ('ROLE_USER');
+insert into user_entity(name,email,type,password,active,created_at) VALUES ('adm','adm@iftmparacatu.app.br','ESTUDANTE','$2a$10$6UxFC1Kbp9t2Qvzl1r.vLOEwKaTAuo3AsdR7RUQOJ4fZL45yjZuVq',true,'2024-03-14');
+insert into user_roles(role_id,user_id) values (1,1);
+insert into user_roles(role_id,user_id) values (2,1);

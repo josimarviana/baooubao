@@ -66,9 +66,10 @@ public class ProposalService {
     public ResponseEntity<Object> save(String tittle,String description,String url,MultipartFile image,String category){
         CycleEntity currentCycle = getCurrentCycleOrThrow("Não foram encontrados ciclos em andamento. Para cadastrar uma proposta, é necessário primeiro cadastrar um ciclo.");
 
-        if(proposalRepository.countByUserEntityAndCycleEntity(SecurityUtil.getAuthenticatedUser(),currentCycle) == 3)
+        if(proposalRepository.countByUserEntityAndCycleEntityAndActiveTrue(SecurityUtil.getAuthenticatedUser(),currentCycle) == 3)
             throw new NotAllowedOperation("O limite de 3 propostas foi atingido. Não é possível cadastrar mais propostas.");
 
+        CategoryEntity categoryEntity = categoryRepository.findByTitleAndActiveTrue(category).orElseThrow(() -> new EntityNotFoundException(String.format("Categoria de nome %s não encontrada!", category)));
         try{
             ProposalEntity proposalEntity = new ProposalEntity();
             proposalEntity.setDescription(description);
@@ -76,7 +77,6 @@ public class ProposalService {
             proposalEntity.setVideoUrl(url);
             proposalEntity.setImage(image.getBytes());
             proposalEntity.setCycleEntity(currentCycle);
-            CategoryEntity categoryEntity = categoryRepository.findByTitle(category);
             proposalEntity.setCategoryEntity(categoryEntity);
             proposalRepository.save(proposalEntity);
 
@@ -88,7 +88,7 @@ public class ProposalService {
 
     public List<RecoveryProposalDto> findAll(){ //Este endpoint lista todas as propostas pendentes de moderação
         CycleEntity currentCycle = getCurrentCycleOrThrow();
-        List<ProposalEntity> proposals = proposalRepository.findByCycleEntityAndSituationOrderByCreatedAtDesc(currentCycle,Situation.PENDING_MODERATION);
+        List<ProposalEntity> proposals = proposalRepository.findByCycleEntityAndSituationAndActiveTrueOrderByCreatedAtDesc(currentCycle,Situation.PENDING_MODERATION);
         return proposals.stream()
                 .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal),RecoveryProposalDto.class))
                 .collect(Collectors.toList());
@@ -96,7 +96,7 @@ public class ProposalService {
 
     public ResponseEntity<Object> myProposals(){
         CycleEntity currentCycle = getCurrentCycleOrThrow();
-        List<ProposalEntity> proposalEntityList = proposalRepository.findAllByUserEntityAndCycleEntityOrderByCreatedAtDesc(SecurityUtil.getAuthenticatedUser(),currentCycle);
+        List<ProposalEntity> proposalEntityList = proposalRepository.findAllByUserEntityAndCycleEntityAndActiveTrueOrderByCreatedAtDesc(SecurityUtil.getAuthenticatedUser(),currentCycle);
         List <RecoveryProposalDto> recoveryProposalDtoList = proposalEntityList.stream()
                                                              .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal),RecoveryProposalDto.class))
                                                               .collect(Collectors.toList());
@@ -106,7 +106,7 @@ public class ProposalService {
     public ResponseEntity<Object> trendingProposals(){
         CycleEntity currentCycle = getCurrentCycleOrThrow();
         PageRequest pageRequest = PageRequest.of(0, 3);
-        List<ProposalEntity> proposalEntityList = proposalRepository.findAllByCycleEntityOrderByVotesDesc(pageRequest,currentCycle).getContent();
+        List<ProposalEntity> proposalEntityList = proposalRepository.findAllByCycleEntityAndActiveTrueAndVotesGreaterThanOrderByVotesDesc(pageRequest,currentCycle,0).getContent();
         List<RecoveryTrendingProposalDto> recoveryProposalDtoList = proposalEntityList.stream()
                                                             .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal),RecoveryTrendingProposalDto.class))
                                                             .collect(Collectors.toList());
@@ -147,13 +147,10 @@ public class ProposalService {
         ProposalEntity existingProposal = proposalRepository.findById(proposalID)
                 .orElseThrow(() -> new EntityNotFoundException(String.format("Proposta de id %d não encontrada!", proposalID)));
         boolean openForVoting = existingProposal.getSituation().equals(Situation.OPEN_FOR_VOTING);
-        boolean inModeration = existingProposal.getSituation().equals(Situation.IN_MODERATION);
         boolean fowardedToBoard = existingProposal.getSituation().equals(Situation.FORWARDED_TO_BOARD);
 
         if (openForVoting){
             throw new NotAllowedOperation(String.format("Não é possível %s propostas em votação",operation));
-        }else if (inModeration){
-            throw new NotAllowedOperation(String.format("Não é possível %s propostas em moderação",operation));
         }else if (fowardedToBoard){
             throw new NotAllowedOperation(String.format("Não é possível %s propostas enviada para o conselho",operation));
         }
@@ -163,8 +160,9 @@ public class ProposalService {
 
     public ResponseEntity<Object> delete(Long proposalID) {
         ProposalEntity existingProposal = checkDeleteOrUpdateProposal(false,proposalID);
-        proposalRepository.delete(existingProposal);
-        return ResponseUtil.createSuccessResponse("Proposta deletada com sucesso !!",HttpStatus.NO_CONTENT);
+        existingProposal.setActive(false);
+        proposalRepository.save(existingProposal);
+        return ResponseUtil.createSuccessResponse("Proposta desativada com sucesso !!",HttpStatus.NO_CONTENT);
     }
 
     public ResponseEntity<Object> hasVoted(Long proposalId){
@@ -204,5 +202,9 @@ public class ProposalService {
                 .acceptedProposals(acceptedProposals)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(recoveryDashboardInformationtDto);
+    }
+
+    public boolean cycleHasProposals(CycleEntity cycleEntity){ //TODO: notificar quando houver propostas anexadas aquele ciclo quando o front tentar desativar um ciclo
+        return !proposalRepository.findByCycleEntity(cycleEntity).isEmpty();
     }
 }

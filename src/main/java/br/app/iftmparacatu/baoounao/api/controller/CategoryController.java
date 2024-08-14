@@ -1,5 +1,6 @@
 package br.app.iftmparacatu.baoounao.api.controller;
 
+import br.app.iftmparacatu.baoounao.domain.dtos.input.CreateCategoryDto;
 import br.app.iftmparacatu.baoounao.domain.model.CategoryEntity;
 import br.app.iftmparacatu.baoounao.domain.repository.CategoryRepository;
 import br.app.iftmparacatu.baoounao.domain.services.CategoryService;
@@ -7,7 +8,6 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
 
 @RestController
 @RequestMapping("/category")
@@ -33,8 +33,13 @@ public class CategoryController {
     }
 
     @PostMapping
-    public ResponseEntity<Object> save(@RequestBody @Valid CategoryEntity categoryEntity) {
-        return categoryService.save(categoryEntity);
+    public ResponseEntity<Object> save(@RequestBody @Valid CreateCategoryDto createCategoryDto) {
+        return categoryService.save(createCategoryDto);
+    }
+
+    @DeleteMapping("/{categoryID}")
+    public ResponseEntity<Object> delete(@PathVariable Long categoryID) {
+        return categoryService.delete(categoryID);
     }
 
     @PatchMapping("/{categoryID}")
