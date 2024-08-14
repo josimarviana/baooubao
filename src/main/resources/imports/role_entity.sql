@@ -1,2 +1,0 @@
-INSERT INTO role_entity(name) VALUES ('ROLE_ADMINISTRATOR');
-INSERT INTO role_entity(name) VALUES ('ROLE_USER');
