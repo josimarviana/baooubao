@@ -8,6 +8,7 @@ import br.app.iftmparacatu.baoounao.domain.repository.CategoryRepository;
 import br.app.iftmparacatu.baoounao.domain.repository.ConfimationTokenRepository;
 import br.app.iftmparacatu.baoounao.domain.util.ResponseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -22,7 +23,10 @@ public class ConfirmTokenService {
     @Autowired
     private ConfimationTokenRepository confirmationTokenRepository;
 
-    public ConfirmationTokenEntity salvar(UserEntity user) {
+    @Value("${url.email}")
+    private String urlConfirmationEmail;
+
+    public String salvar(UserEntity user) {
 
        ConfirmationTokenEntity token = ConfirmationTokenEntity.builder()
                .token(UUID.randomUUID().toString())
@@ -30,7 +34,9 @@ public class ConfirmTokenService {
                .expiryDate(LocalDateTime.now().plusHours(24))
                .user(user)
                .build();
-        return confirmationTokenRepository.save(token);
+        confirmationTokenRepository.save(token);
+       urlConfirmationEmail = urlConfirmationEmail.replace("{token}", token.getToken());
+        return urlConfirmationEmail;
     }
     public Optional<ConfirmationTokenEntity> validation(String token) {
         return Optional.ofNullable(confirmationTokenRepository.findByToken(token))

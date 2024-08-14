@@ -13,6 +13,8 @@ import br.app.iftmparacatu.baoounao.domain.repository.RoleRepository;
 import br.app.iftmparacatu.baoounao.domain.repository.UserRepository;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,12 +23,15 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
+import java.net.URI;
 import java.security.SecureRandom;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class UserService {
+    @Value("${url.email.redirect}")
+    private String url_redirect;
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -77,7 +82,7 @@ public class UserService {
 
         userRepository.save(newUser);
         try {
-            emailService.enviarEmailDeConfirmacao(createUserDto.email(), createUserDto.name(),"http://localhost:8080/user/token/" + confirmationTokenService.salvar(newUser).getToken());
+            emailService.enviarEmailDeConfirmacao(createUserDto.email(), createUserDto.name(),confirmationTokenService.salvar(newUser));
         } catch (MessagingException e) {
             throw new RuntimeException(e);
         }
@@ -85,14 +90,15 @@ public class UserService {
 
 
 
-    public ResponseEntity<String> validateUser(String token) {
+    public ResponseEntity<Object> validateUser(String token) {
         return confirmationTokenService.validation(token)
                 .map(t -> {
                     UserEntity user = t.getUser();
                     user.setActive(true);
                     userRepository.save(user);
                     confirmationTokenService.delete(t);
-                    return ResponseEntity.ok("Cadastro ativado");
+                    URI redirectUri = URI.create(url_redirect);
+                    return ResponseEntity.status(HttpStatus.FOUND).location(redirectUri).build();
                 })
                 .orElseGet(() -> ResponseEntity.badRequest().body("Token inválido ou expirado"));
     }
