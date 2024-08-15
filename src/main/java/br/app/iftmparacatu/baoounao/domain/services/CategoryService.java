@@ -24,6 +24,12 @@ public class CategoryService {
     public ResponseEntity<Object> update(Long categoryID, CategoryEntity updatedCategory) {
         CategoryEntity existingCategory = categoryRepository.findById(categoryID)
                 .orElseThrow(() -> new EntityNotFoundException(String.format("Categoria de id %d não encontrada!", categoryID)));
+
+        Optional<CategoryEntity> checkCateogry = categoryRepository.findByTitleAndActiveTrue(updatedCategory.getTitle());
+        if(checkCateogry.isPresent()){
+            throw new NotAllowedOperation(String.format("Categoria %s já foi cadastrada !!",updatedCategory.getTitle()));
+        }
+
         Optional.ofNullable(updatedCategory.getTitle())
                 .ifPresent(existingCategory::setTitle);
         Optional.ofNullable(updatedCategory.getActive())
