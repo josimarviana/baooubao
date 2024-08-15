@@ -15,6 +15,8 @@ public interface CycleRepository extends JpaRepository<CycleEntity, Long> {
 
     List<CycleEntity> findByActiveTrue();
 
+    Optional<CycleEntity> findByTitleAndActiveTrue(String title);
+
     Optional<CycleEntity> findByStartDateLessThanEqualAndFinishDateGreaterThanEqualOrStartDateBetweenOrFinishDateBetweenAndActiveTrue(
             LocalDate dateStart,
             LocalDate dateEnd,

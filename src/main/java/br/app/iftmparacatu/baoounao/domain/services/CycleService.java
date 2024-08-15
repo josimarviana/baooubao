@@ -30,6 +30,13 @@ public class CycleService {
     private void checkUpdateOrCreateCycle(boolean update, CreateCycleDto createCycleDto){
         String operation = update ? "Atualização" : "Cadastro";
         Optional<CycleEntity> overlappingCycle = findOverlappingCycle(createCycleDto.startDate(),createCycleDto.finishDate()); //TODO: pode ser que sobreponha mais de um ciclo, talvez seja necessário ajustar e alterar a mensagem de erro
+        Optional<CycleEntity> checkCycle = cycleRepository.findByTitleAndActiveTrue(createCycleDto.title());
+
+        if (checkCycle.isPresent()){
+            throw new NotAllowedOperation(String.format("Ciclo %s já cadastrado !!",createCycleDto.title()));
+        }
+
+
         if (overlappingCycle.isPresent()) {
             CycleEntity foundedCycle = overlappingCycle.get();
             throw new NotAllowedOperation(String.format(
