@@ -28,6 +28,8 @@ public class CategoryService {
                 .ifPresent(existingCategory::setTitle);
         Optional.ofNullable(updatedCategory.getActive())
                 .ifPresent(existingCategory::setActive);
+        Optional.ofNullable(updatedCategory.getIcon())
+                .ifPresent(existingCategory::setIcon);
         categoryRepository.save(existingCategory);
         return ResponseUtil.createSuccessResponse("Categoria atualizada com sucesso !!",HttpStatus.OK);
     }
