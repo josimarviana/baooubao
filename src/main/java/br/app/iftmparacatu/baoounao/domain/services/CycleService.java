@@ -19,6 +19,9 @@ public class CycleService {
     @Autowired
     private CycleRepository cycleRepository;
 
+    @Autowired
+    private ProposalService proposalService;
+
     public Optional<CycleEntity> findProgressCycle(){
         LocalDate date = LocalDate.now();
         return cycleRepository.findByStartDateLessThanEqualAndFinishDateGreaterThanEqualAndActiveTrue(date,date);
@@ -92,6 +95,11 @@ public class CycleService {
     public ResponseEntity<Object> delete(Long cycleID) {
         CycleEntity existingCycle = cycleRepository.findById(cycleID)
                 .orElseThrow(() -> new EntityNotFoundException(String.format("Ciclo de id %d não encontrada!", cycleID)));
+
+        if(proposalService.cycleHasProposals(existingCycle)){
+            throw new NotAllowedOperation("Não é possível desativar este ciclo porque há propostas vinculadas a ele !!");
+        }
+
         existingCycle.setActive(false);
         cycleRepository.save(existingCycle);
         return ResponseUtil.createSuccessResponse("Ciclo desativado com sucesso !!",HttpStatus.OK);
