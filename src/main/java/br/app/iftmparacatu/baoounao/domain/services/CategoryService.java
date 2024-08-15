@@ -26,7 +26,8 @@ public class CategoryService {
                 .orElseThrow(() -> new EntityNotFoundException(String.format("Categoria de id %d não encontrada!", categoryID)));
 
         Optional<CategoryEntity> checkCateogry = categoryRepository.findByTitleAndActiveTrue(updatedCategory.getTitle());
-        if(checkCateogry.isPresent()){
+
+        if(checkCateogry.isPresent() && categoryID != checkCateogry.get().getId()){
             throw new NotAllowedOperation(String.format("Categoria %s já foi cadastrada !!",updatedCategory.getTitle()));
         }
 

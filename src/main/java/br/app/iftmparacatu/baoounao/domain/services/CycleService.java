@@ -58,6 +58,46 @@ public class CycleService {
         }
     }
 
+    private void checkUpdateOrCreateCycle(Long cycleID,boolean update, CreateCycleDto createCycleDto){
+        String operation = update ? "Atualização" : "Cadastro";
+        Optional<CycleEntity> overlappingCycle = Optional.empty();
+        LocalDate startDate = createCycleDto.startDate();
+        LocalDate finishDate = createCycleDto.finishDate();
+
+        if (startDate != null || finishDate != null) {
+            LocalDate effectiveStartDate = (startDate != null) ? startDate : finishDate;
+            LocalDate effectiveFinishDate = (finishDate != null) ? finishDate : startDate;
+            overlappingCycle = findOverlappingCycle(effectiveStartDate, effectiveFinishDate);
+        }
+
+         //TODO: pode ser que sobreponha mais de um ciclo, talvez seja necessário ajustar e alterar a mensagem de erro
+        Optional<CycleEntity> checkCycle = cycleRepository.findByTitleAndActiveTrue(createCycleDto.title());
+
+        if (checkCycle.isPresent() && cycleID != checkCycle.get().getId()){
+            throw new NotAllowedOperation(String.format("Ciclo %s já cadastrado !!",createCycleDto.title()));
+        }
+
+        if (overlappingCycle.isPresent()) {
+            CycleEntity foundedCycle = overlappingCycle.get();
+            throw new NotAllowedOperation(String.format(
+                    "%s do ciclo não permitido: já existe um ciclo em andamento para a data atual. O ciclo '%s' ocorrerá de %s a %s.",
+                    operation,
+                    foundedCycle.getTitle(),
+                    foundedCycle.getStartDate(),
+                    foundedCycle.getFinishDate()
+            ));
+        }
+
+        if (createCycleDto.startDate().isAfter(createCycleDto.finishDate())) {
+            throw new NotAllowedOperation(String.format(
+                    "%s do ciclo não permitido: a data de início (%s) é posterior à data de término (%s).",
+                    operation,
+                    createCycleDto.startDate(),
+                    createCycleDto.finishDate()
+            ));
+        }
+    }
+
     public ResponseEntity<Object> save(CreateCycleDto createCycleDto){
         checkUpdateOrCreateCycle(false,createCycleDto);
         CycleEntity newCycle = CycleEntity.builder()
@@ -86,7 +126,7 @@ public class CycleService {
     }
 
     public ResponseEntity<Object> update(Long cycleID, CreateCycleDto updatedCycleDto) {
-        checkUpdateOrCreateCycle(true,updatedCycleDto);
+        checkUpdateOrCreateCycle(cycleID,true,updatedCycleDto);
         CycleEntity existingCycle = cycleRepository.findById(cycleID)
                 .orElseThrow(() -> new EntityNotFoundException(String.format("Ciclo de id %d não encontrada!", cycleID)));
         Optional.ofNullable(updatedCycleDto.title())
