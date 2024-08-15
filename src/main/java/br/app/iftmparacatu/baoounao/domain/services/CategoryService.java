@@ -26,7 +26,7 @@ public class CategoryService {
                 .orElseThrow(() -> new EntityNotFoundException(String.format("Categoria de id %d não encontrada!", categoryID)));
         Optional.ofNullable(updatedCategory.getTitle())
                 .ifPresent(existingCategory::setTitle);
-        Optional.of(updatedCategory.getActive())
+        Optional.ofNullable(updatedCategory.getActive())
                 .ifPresent(existingCategory::setActive);
         categoryRepository.save(existingCategory);
         return ResponseUtil.createSuccessResponse("Categoria atualizada com sucesso !!",HttpStatus.OK);
