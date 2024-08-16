@@ -3,6 +3,7 @@ package br.app.iftmparacatu.baoounao.api.controller;
 
 import br.app.iftmparacatu.baoounao.domain.dtos.input.UpdateProposalDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryProposalDto;
+import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryTrendingProposalDto;
 import br.app.iftmparacatu.baoounao.domain.enums.Situation;
 import br.app.iftmparacatu.baoounao.domain.repository.ProposalRepository;
 import br.app.iftmparacatu.baoounao.domain.services.ProposalService;
@@ -24,8 +25,8 @@ public class ProposalController {
     ProposalService proposalService;
 
     @GetMapping
-    public ResponseEntity<List<RecoveryProposalDto>> list (){
-        List<RecoveryProposalDto> propostas =  proposalService.findAll();
+    public ResponseEntity<List<RecoveryTrendingProposalDto>> list (){
+        List<RecoveryTrendingProposalDto> propostas =  proposalService.findAll();
         return ResponseEntity.status(HttpStatus.OK).body(propostas);
     }
 
