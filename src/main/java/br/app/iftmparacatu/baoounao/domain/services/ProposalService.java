@@ -122,6 +122,7 @@ public class ProposalService {
                 .ifPresent(existingProposal::setDescription);
         Optional.ofNullable(updateProposalDto.image())
                 .ifPresent(existingProposal::setImage);
+        existingProposal.setSituation(Situation.PENDING_MODERATION);
         proposalRepository.save(existingProposal);
 
         return ResponseUtil.createSuccessResponse("Proposta atualizada com sucesso !!",HttpStatus.OK);
