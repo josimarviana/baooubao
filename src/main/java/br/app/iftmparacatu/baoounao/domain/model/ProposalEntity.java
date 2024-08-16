@@ -4,6 +4,8 @@ import br.app.iftmparacatu.baoounao.domain.enums.Situation;
 import br.app.iftmparacatu.baoounao.domain.util.SecurityUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,6 +17,7 @@ import java.util.List;
 
 @Entity
 @Getter @Setter
+@Builder
 @EqualsAndHashCode
 public class ProposalEntity {
     @Id
@@ -48,6 +51,7 @@ public class ProposalEntity {
     private CycleEntity cycleEntity;
     @JoinColumn(name = "category_entity_id")
     @ManyToOne
+    @NotNull
     private CategoryEntity categoryEntity;
     @PrePersist
     public void prePersist() {

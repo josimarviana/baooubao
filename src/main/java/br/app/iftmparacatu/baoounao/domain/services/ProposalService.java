@@ -85,13 +85,14 @@ public class ProposalService {
 
         CategoryEntity categoryEntity = categoryRepository.findByTitleAndActiveTrue(category).orElseThrow(() -> new EntityNotFoundException(String.format("Categoria de nome %s não encontrada!", category)));
         try{
-            ProposalEntity proposalEntity = new ProposalEntity();
-            proposalEntity.setDescription(description);
-            proposalEntity.setTitle(tittle);
-            proposalEntity.setVideoUrl(url);
-            proposalEntity.setImage(image.getBytes());
-            proposalEntity.setCycleEntity(currentCycle);
-            proposalEntity.setCategoryEntity(categoryEntity);
+            ProposalEntity proposalEntity = ProposalEntity.builder()
+                    .description(description)
+                    .title(tittle)
+                    .videoUrl(url)
+                    .image(image.getBytes())
+                    .cycleEntity(currentCycle)
+                    .categoryEntity(categoryEntity)
+                    .build();
             proposalRepository.save(proposalEntity);
 
             return ResponseUtil.createSuccessResponse("Proposta salva com sucesso !!",HttpStatus.CREATED);
