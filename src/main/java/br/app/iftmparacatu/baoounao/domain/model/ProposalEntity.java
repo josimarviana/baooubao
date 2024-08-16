@@ -50,7 +50,7 @@ public class ProposalEntity {
     private CycleEntity cycleEntity;
     @JoinColumn(name = "category_entity_id")
     @ManyToOne
-    @NotNull
+    @NotNull(message = "categoria é obrigatório")
     private CategoryEntity categoryEntity;
     @PrePersist
     public void prePersist() {
