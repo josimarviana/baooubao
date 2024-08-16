@@ -46,13 +46,9 @@ public class ProposalController {
         return proposalService.save(tittle, description, url, image, category);
     }
 
-//    @GetMapping("/filter")
-//    public ResponseEntity<PaginatedProposalsResponse> filterByDescriptionOrTitle (@RequestParam(value = "page", defaultValue = "0") int page, @RequestParam(value = "size", defaultValue = "10") int size, @RequestParam(value = "contain", required = false) String text ){
-//        return proposalService.filterByDescriptionOrTitle(text,page,size);
-//    }
     @GetMapping("/filter")
-    public ResponseEntity<Object> filterByDescriptionOrTitle (@RequestParam(value = "contain", required = false) String text ){
-        return proposalService.filterByDescriptionOrTitle(text);
+    public ResponseEntity<PaginatedProposalsResponse> filterByDescriptionOrTitle (@RequestParam(value = "page", defaultValue = "0") int page, @RequestParam(value = "size", defaultValue = "10") int size, @RequestParam(value = "contain", required = false) String text ){
+        return proposalService.filterByDescriptionOrTitle(text,page,size);
     }
     @GetMapping("/trending")
     public ResponseEntity<Object> trendingProposals (){
