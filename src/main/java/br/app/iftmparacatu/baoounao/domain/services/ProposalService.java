@@ -3,10 +3,7 @@ package br.app.iftmparacatu.baoounao.domain.services;
 import br.app.iftmparacatu.baoounao.api.exception.EntityNotFoundException;
 import br.app.iftmparacatu.baoounao.api.exception.NotAllowedOperation;
 import br.app.iftmparacatu.baoounao.domain.dtos.input.UpdateProposalDto;
-import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryDashboardInformationtDto;
-import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryProposalDto;
-import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryTrendingProposalDto;
-import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryVoteProposalDto;
+import br.app.iftmparacatu.baoounao.domain.dtos.output.*;
 import br.app.iftmparacatu.baoounao.domain.enums.Situation;
 import br.app.iftmparacatu.baoounao.domain.model.CategoryEntity;
 import br.app.iftmparacatu.baoounao.domain.model.CycleEntity;
@@ -47,6 +44,11 @@ public class ProposalService {
 
     public RecoveryProposalDto mapToDto(ProposalEntity proposalEntity) {
         return modelMapper.map(proposalEntity, RecoveryProposalDto.class);
+    }
+
+    public <T>  T mapToDto(ProposalEntity proposalEntity , Class<T> dtoClass) {
+        T dto = modelMapper.map(proposalEntity, dtoClass);
+        return dto;
     }
 
     public <T> T mapToDto(ProposalEntity proposalEntity, int voteCount, Class<T> dtoClass) {
@@ -174,8 +176,8 @@ public class ProposalService {
         Situation situation = Situation.OPEN_FOR_VOTING;
         List<ProposalEntity> proposalEntityList = proposalRepository.findByCycleEntityAndTitleContainingAndSituationOrCycleEntityAndDescriptionContainingAndSituation(currentCycle,text,situation,currentCycle,text,situation);
 
-        List <RecoveryProposalDto> recoveryProposalDtoList = proposalEntityList.stream()
-                .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal),RecoveryProposalDto.class))
+        List <RecoveryProposalWhithoutImageDto> recoveryProposalDtoList = proposalEntityList.stream()
+                .map(proposal -> mapToDto(proposal,RecoveryProposalWhithoutImageDto.class))
                 .collect(Collectors.toList());
         return ResponseEntity.status(HttpStatus.OK).body(recoveryProposalDtoList);
     }
