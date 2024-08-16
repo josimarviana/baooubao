@@ -48,6 +48,27 @@ public class ProposalService {
         return dto;
     }
 
+    public RecoveryProposalFilterDto mapToDto(ProposalEntity proposalEntity, int votes){
+        RecoveryProposalFilterDto recoveryProposalDto = RecoveryProposalFilterDto.builder()
+                .id(proposalEntity.getId())
+                .title(proposalEntity.getTitle())
+                .description(proposalEntity.getDescription())
+                .category(proposalEntity.getCategoryEntity().getTitle())
+                .icon(proposalEntity.getCategoryEntity().getIcon())
+                .votes(votes)
+                .createdAt(proposalEntity.getCreatedAt().toString())
+                .build();
+        return recoveryProposalDto;
+    }
+
+    public <T> T mapToDto(ProposalEntity proposalEntity, int voteCount, Class<T> dtoClass) {
+        T dto = modelMapper.map(proposalEntity, dtoClass);
+        if (dto instanceof RecoveryProposalFilterDto) {
+            ((RecoveryProposalFilterDto) dto).setVotes(voteCount);
+        }
+        return dto;
+    }
+
     public ResponseEntity<Object> findById(Long proposalId){
         Optional<ProposalEntity> proposal = Optional.ofNullable(proposalRepository.findById(proposalId).orElseThrow(() -> new EntityNotFoundException(String.format("Proposta de id %d não foi encontrada",proposalId))));
         ProposalEntity recoveredProposal = proposal.get();
@@ -185,14 +206,15 @@ public class ProposalService {
         return ResponseEntity.status(HttpStatus.OK).body(recoveryProposalDtoList);
     }
 
-    public ResponseEntity<PaginatedProposalsResponse> filterByDescriptionOrTitle(String text,int page, int size){
+    public ResponseEntity<PaginatedProposalsResponse> filterByDescriptionOrTitle(String text,int page, int size, String sort){
         CycleEntity currentCycle = getCurrentCycleOrThrow();
         Situation situation = Situation.OPEN_FOR_VOTING;
         Pageable pageable = PageRequest.of(page, size);
         Page<ProposalEntity> proposalEntityList = proposalRepository.findByCycleEntityAndTitleContainingAndSituationOrCycleEntityAndDescriptionContainingAndSituation(currentCycle,text,situation,currentCycle,text,situation,pageable);
 
-        List <RecoveryTrendingProposalDto> recoveryProposalDtoList = proposalEntityList.stream()
-                .map(proposal -> mapToDto(proposal,RecoveryTrendingProposalDto.class))
+
+        List <RecoveryProposalFilterDto> recoveryProposalDtoList = proposalEntityList.stream()
+                .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal)))
                 .collect(Collectors.toList());
 
         PaginatedProposalsResponse response = PaginatedProposalsResponse.builder()
@@ -201,6 +223,7 @@ public class ProposalService {
                 .totalPages(proposalEntityList.getTotalPages())
                 .currentPage(proposalEntityList.getNumber())
                 .build();
+        response.sortProposals(sort);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
