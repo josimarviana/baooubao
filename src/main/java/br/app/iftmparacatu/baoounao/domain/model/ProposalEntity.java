@@ -25,7 +25,6 @@ public class ProposalEntity {
     private String title;
     @Column
     private String description;
-    private Integer likes;
     @OneToMany(mappedBy = "proposalEntity")
     @JsonIgnore
     private List<VotingEntity> votes;

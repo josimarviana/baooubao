@@ -61,8 +61,19 @@ public class ProposalService {
 
     public ResponseEntity<Object> findById(Long proposalId){
         Optional<ProposalEntity> proposal = Optional.ofNullable(proposalRepository.findById(proposalId).orElseThrow(() -> new EntityNotFoundException(String.format("Proposta de id %d não foi encontrada",proposalId))));
-        proposal.get().setLikes(votingService.countByProposalEntity(proposal.get()));
-        return ResponseEntity.status(HttpStatus.OK).body(mapToDto(proposal.get()));
+        ProposalEntity recoveredProposal = proposal.get();
+        RecoveryProposalDto recoveryProposalDto = RecoveryProposalDto.builder()
+                .id(proposalId)
+                .title(recoveredProposal.getTitle())
+                .description(recoveredProposal.getDescription())
+                .image(recoveredProposal.getImage())
+                .author(recoveredProposal.getUserEntity().getName())
+                .likes(votingService.countByProposalEntity(recoveredProposal))
+                .category(recoveredProposal.getCategoryEntity().getTitle())
+                .videoUrl(recoveredProposal.getVideoUrl())
+                .createdAt(recoveredProposal.getCreatedAt())
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(recoveryProposalDto);
     }
 
     public ResponseEntity<Object> save(String tittle,String description,String url,MultipartFile image,String category){
