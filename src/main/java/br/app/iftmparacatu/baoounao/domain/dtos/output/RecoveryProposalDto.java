@@ -20,5 +20,6 @@ public class RecoveryProposalDto {
     private String category;
     private String situation;
     private String videoUrl;
+    private String icon;
     private LocalDateTime createdAt;
 }

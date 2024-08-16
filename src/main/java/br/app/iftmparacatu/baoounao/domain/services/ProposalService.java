@@ -71,6 +71,7 @@ public class ProposalService {
                 .likes(votingService.countByProposalEntity(recoveredProposal))
                 .category(recoveredProposal.getCategoryEntity().getTitle())
                 .videoUrl(recoveredProposal.getVideoUrl())
+                .icon(recoveredProposal.getCategoryEntity().getIcon())
                 .createdAt(recoveredProposal.getCreatedAt())
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(recoveryProposalDto);
