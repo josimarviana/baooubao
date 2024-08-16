@@ -5,10 +5,7 @@ import br.app.iftmparacatu.baoounao.domain.util.SecurityUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.sql.Blob;
 import java.time.LocalDateTime;
@@ -19,6 +16,8 @@ import java.util.List;
 @Getter @Setter
 @Builder
 @EqualsAndHashCode
+@AllArgsConstructor
+@NoArgsConstructor
 public class ProposalEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
