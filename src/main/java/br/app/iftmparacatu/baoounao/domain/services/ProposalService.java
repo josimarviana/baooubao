@@ -15,6 +15,7 @@ import br.app.iftmparacatu.baoounao.domain.util.SecurityUtil;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -176,6 +177,18 @@ public class ProposalService {
         CycleEntity currentCycle = getCurrentCycleOrThrow();
         Situation situation = Situation.OPEN_FOR_VOTING;
         List<ProposalEntity> proposalEntityList = proposalRepository.findByCycleEntityAndTitleContainingAndSituationOrCycleEntityAndDescriptionContainingAndSituation(currentCycle,text,situation,currentCycle,text,situation);
+
+        List <RecoveryTrendingProposalDto> recoveryProposalDtoList = proposalEntityList.stream()
+                .map(proposal -> mapToDto(proposal,RecoveryTrendingProposalDto.class))
+                .collect(Collectors.toList());
+        return ResponseEntity.status(HttpStatus.OK).body(recoveryProposalDtoList);
+    }
+
+    public ResponseEntity<Object> filterByDescriptionOrTitle(String text,int page, int size){
+        CycleEntity currentCycle = getCurrentCycleOrThrow();
+        Situation situation = Situation.OPEN_FOR_VOTING;
+        Pageable pageable = PageRequest.of(page, size);
+        List<ProposalEntity> proposalEntityList = proposalRepository.findByCycleEntityAndTitleContainingAndSituationOrCycleEntityAndDescriptionContainingAndSituation(currentCycle,text,situation,currentCycle,text,situation,pageable);
 
         List <RecoveryTrendingProposalDto> recoveryProposalDtoList = proposalEntityList.stream()
                 .map(proposal -> mapToDto(proposal,RecoveryTrendingProposalDto.class))
