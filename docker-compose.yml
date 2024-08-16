@@ -16,3 +16,5 @@ services:
       - IMAGE=${IMAGE}
       - CONTAINER_NAME=${CONTAINER_NAME}
       - HOST_PORT=${HOST_PORT}
+      - URL_EMAIL=${URL_EMAIL}
+      - URL_REDIRECT=${URL_REDIRECT}

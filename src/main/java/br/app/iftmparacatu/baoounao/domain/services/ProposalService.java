@@ -3,10 +3,7 @@ package br.app.iftmparacatu.baoounao.domain.services;
 import br.app.iftmparacatu.baoounao.api.exception.EntityNotFoundException;
 import br.app.iftmparacatu.baoounao.api.exception.NotAllowedOperation;
 import br.app.iftmparacatu.baoounao.domain.dtos.input.UpdateProposalDto;
-import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryDashboardInformationtDto;
-import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryProposalDto;
-import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryTrendingProposalDto;
-import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryVoteProposalDto;
+import br.app.iftmparacatu.baoounao.domain.dtos.output.*;
 import br.app.iftmparacatu.baoounao.domain.enums.Situation;
 import br.app.iftmparacatu.baoounao.domain.model.CategoryEntity;
 import br.app.iftmparacatu.baoounao.domain.model.CycleEntity;
@@ -49,6 +46,11 @@ public class ProposalService {
         return modelMapper.map(proposalEntity, RecoveryProposalDto.class);
     }
 
+    public <T>  T mapToDto(ProposalEntity proposalEntity , Class<T> dtoClass) {
+        T dto = modelMapper.map(proposalEntity, dtoClass);
+        return dto;
+    }
+
     public <T> T mapToDto(ProposalEntity proposalEntity, int voteCount, Class<T> dtoClass) {
         T dto = modelMapper.map(proposalEntity, dtoClass);
         if (dto instanceof RecoveryProposalDto) {
@@ -69,6 +71,7 @@ public class ProposalService {
         if(proposalRepository.countByUserEntityAndCycleEntityAndActiveTrue(SecurityUtil.getAuthenticatedUser(),currentCycle) == 3)
             throw new NotAllowedOperation("O limite de 3 propostas foi atingido. Não é possível cadastrar mais propostas.");
 
+        CategoryEntity categoryEntity = categoryRepository.findByTitleAndActiveTrue(category).orElseThrow(() -> new EntityNotFoundException(String.format("Categoria de nome %s não encontrada!", category)));
         try{
             ProposalEntity proposalEntity = new ProposalEntity();
             proposalEntity.setDescription(description);
@@ -76,7 +79,6 @@ public class ProposalService {
             proposalEntity.setVideoUrl(url);
             proposalEntity.setImage(image.getBytes());
             proposalEntity.setCycleEntity(currentCycle);
-            CategoryEntity categoryEntity = categoryRepository.findByTitle(category);
             proposalEntity.setCategoryEntity(categoryEntity);
             proposalRepository.save(proposalEntity);
 
@@ -97,8 +99,8 @@ public class ProposalService {
     public ResponseEntity<Object> myProposals(){
         CycleEntity currentCycle = getCurrentCycleOrThrow();
         List<ProposalEntity> proposalEntityList = proposalRepository.findAllByUserEntityAndCycleEntityAndActiveTrueOrderByCreatedAtDesc(SecurityUtil.getAuthenticatedUser(),currentCycle);
-        List <RecoveryProposalDto> recoveryProposalDtoList = proposalEntityList.stream()
-                                                             .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal),RecoveryProposalDto.class))
+        List <RecoveryProposalWhithoutImageDto> recoveryProposalDtoList = proposalEntityList.stream()
+                                                             .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal),RecoveryProposalWhithoutImageDto.class))
                                                               .collect(Collectors.toList());
         return ResponseEntity.status(HttpStatus.OK).body(recoveryProposalDtoList);
     }
@@ -106,7 +108,7 @@ public class ProposalService {
     public ResponseEntity<Object> trendingProposals(){
         CycleEntity currentCycle = getCurrentCycleOrThrow();
         PageRequest pageRequest = PageRequest.of(0, 3);
-        List<ProposalEntity> proposalEntityList = proposalRepository.findAllByCycleEntityOrderByVotesDesc(pageRequest,currentCycle).getContent();
+        List<ProposalEntity> proposalEntityList = proposalRepository.findAllByCycleEntityAndActiveTrueOrderByVotesDesc(pageRequest,currentCycle).getContent();
         List<RecoveryTrendingProposalDto> recoveryProposalDtoList = proposalEntityList.stream()
                                                             .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal),RecoveryTrendingProposalDto.class))
                                                             .collect(Collectors.toList());
@@ -174,8 +176,8 @@ public class ProposalService {
         Situation situation = Situation.OPEN_FOR_VOTING;
         List<ProposalEntity> proposalEntityList = proposalRepository.findByCycleEntityAndTitleContainingAndSituationOrCycleEntityAndDescriptionContainingAndSituation(currentCycle,text,situation,currentCycle,text,situation);
 
-        List <RecoveryProposalDto> recoveryProposalDtoList = proposalEntityList.stream()
-                .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal),RecoveryProposalDto.class))
+        List <RecoveryProposalWhithoutImageDto> recoveryProposalDtoList = proposalEntityList.stream()
+                .map(proposal -> mapToDto(proposal,RecoveryProposalWhithoutImageDto.class))
                 .collect(Collectors.toList());
         return ResponseEntity.status(HttpStatus.OK).body(recoveryProposalDtoList);
     }
@@ -206,5 +208,9 @@ public class ProposalService {
 
     public boolean cycleHasProposals(CycleEntity cycleEntity){ //TODO: notificar quando houver propostas anexadas aquele ciclo quando o front tentar desativar um ciclo
         return !proposalRepository.findByCycleEntity(cycleEntity).isEmpty();
+    }
+
+    public boolean categoryHasProposals(CategoryEntity categoryEntity){
+        return !proposalRepository.findAllByCategoryEntity(categoryEntity).isEmpty();
     }
 }

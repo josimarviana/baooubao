@@ -1,8 +1,6 @@
 package br.app.iftmparacatu.baoounao.api.exceptionhandler;
 
-import br.app.iftmparacatu.baoounao.api.exception.EntityNotFoundException;
-import br.app.iftmparacatu.baoounao.api.exception.InactiveUserException;
-import br.app.iftmparacatu.baoounao.api.exception.NotAllowedOperation;
+import br.app.iftmparacatu.baoounao.api.exception.*;
 import br.app.iftmparacatu.baoounao.api.response.Problem;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -33,6 +31,15 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(InactiveUserException.class)
     public ResponseEntity<?> handleInactiveUserException(InactiveUserException e, WebRequest request){
+        return handleExceptionInternal(e, e.getMessage(), new HttpHeaders(), HttpStatus.UNAUTHORIZED,request);
+    }
+    @ExceptionHandler(InvalidDomainException.class)
+    public ResponseEntity<?> handleInvalidDomainException( InvalidDomainException e, WebRequest request){
+        return handleExceptionInternal(e, e.getMessage(), new HttpHeaders(), HttpStatus.UNAUTHORIZED,request);
+    }
+
+    @ExceptionHandler(value = EmailSendingException.class)
+    public ResponseEntity<?> handleEmailSendingException( EmailSendingException e, WebRequest request){
         return handleExceptionInternal(e, e.getMessage(), new HttpHeaders(), HttpStatus.UNAUTHORIZED,request);
     }
 

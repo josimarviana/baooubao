@@ -1,20 +1,25 @@
 package br.app.iftmparacatu.baoounao.domain.model;
 
 import java.time.LocalDateTime;
-
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Data;
+import lombok.*;
+
 @Entity
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class CategoryEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(length = 100)
+    @EqualsAndHashCode.Include
     private String title;
     @Column
-    private boolean active;
+    private Boolean active;
     @Column(nullable = false)
     @NotNull
     private LocalDateTime createdAt;
@@ -25,6 +30,9 @@ public class CategoryEntity {
     public void prePersist() {
         if (createdAt == null) {
             createdAt = LocalDateTime.now();
+        }
+        if (active == null) {
+            active = true;
         }
     }
 
