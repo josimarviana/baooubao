@@ -99,8 +99,8 @@ public class ProposalService {
     public ResponseEntity<Object> myProposals(){
         CycleEntity currentCycle = getCurrentCycleOrThrow();
         List<ProposalEntity> proposalEntityList = proposalRepository.findAllByUserEntityAndCycleEntityAndActiveTrueOrderByCreatedAtDesc(SecurityUtil.getAuthenticatedUser(),currentCycle);
-        List <RecoveryProposalWhithoutImageDto> recoveryProposalDtoList = proposalEntityList.stream()
-                                                             .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal),RecoveryProposalWhithoutImageDto.class))
+        List <RecoveryTrendingProposalDto> recoveryProposalDtoList = proposalEntityList.stream()
+                                                             .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal),RecoveryTrendingProposalDto.class))
                                                               .collect(Collectors.toList());
         return ResponseEntity.status(HttpStatus.OK).body(recoveryProposalDtoList);
     }
@@ -176,8 +176,8 @@ public class ProposalService {
         Situation situation = Situation.OPEN_FOR_VOTING;
         List<ProposalEntity> proposalEntityList = proposalRepository.findByCycleEntityAndTitleContainingAndSituationOrCycleEntityAndDescriptionContainingAndSituation(currentCycle,text,situation,currentCycle,text,situation);
 
-        List <RecoveryProposalWhithoutImageDto> recoveryProposalDtoList = proposalEntityList.stream()
-                .map(proposal -> mapToDto(proposal,RecoveryProposalWhithoutImageDto.class))
+        List <RecoveryTrendingProposalDto> recoveryProposalDtoList = proposalEntityList.stream()
+                .map(proposal -> mapToDto(proposal,RecoveryTrendingProposalDto.class))
                 .collect(Collectors.toList());
         return ResponseEntity.status(HttpStatus.OK).body(recoveryProposalDtoList);
     }
