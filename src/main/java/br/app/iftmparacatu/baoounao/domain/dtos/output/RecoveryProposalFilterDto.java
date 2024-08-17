@@ -1,14 +1,20 @@
 package br.app.iftmparacatu.baoounao.domain.dtos.output;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor
-public class RecoveryTrendingProposalDto {
+public class RecoveryProposalFilterDto {
     private Long id;
     private String title;
     private String description;
     private String category;
     private String icon;
+    private int votes;
+    private String createdAt;
 }

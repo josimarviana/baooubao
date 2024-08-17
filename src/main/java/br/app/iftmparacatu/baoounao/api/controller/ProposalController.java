@@ -2,6 +2,7 @@ package br.app.iftmparacatu.baoounao.api.controller;
 
 
 import br.app.iftmparacatu.baoounao.domain.dtos.input.UpdateProposalDto;
+import br.app.iftmparacatu.baoounao.domain.dtos.output.PaginatedProposalsResponse;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryProposalDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryTrendingProposalDto;
 import br.app.iftmparacatu.baoounao.domain.enums.Situation;
@@ -46,8 +47,8 @@ public class ProposalController {
     }
 
     @GetMapping("/filter")
-    public ResponseEntity<Object> filterByDescriptionOrTitle (@RequestParam(value = "contain", required = false) String text ){
-        return proposalService.filterByDescriptionOrTitle(text);
+    public ResponseEntity<PaginatedProposalsResponse> filterByDescriptionOrTitle (@RequestParam(value = "page", defaultValue = "0") int page, @RequestParam(value = "size", defaultValue = "9") int size, @RequestParam(value = "contain", required = false) String text, @RequestParam(value = "sort", defaultValue = "recent") String sort ){
+        return proposalService.filterByDescriptionOrTitle(text,page,size,sort);
     }
     @GetMapping("/trending")
     public ResponseEntity<Object> trendingProposals (){

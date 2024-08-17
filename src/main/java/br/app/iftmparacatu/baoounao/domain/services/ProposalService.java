@@ -14,7 +14,9 @@ import br.app.iftmparacatu.baoounao.domain.util.ResponseUtil;
 import br.app.iftmparacatu.baoounao.domain.util.SecurityUtil;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -43,6 +45,27 @@ public class ProposalService {
 
     public <T>  T mapToDto(ProposalEntity proposalEntity , Class<T> dtoClass) {
         T dto = modelMapper.map(proposalEntity, dtoClass);
+        return dto;
+    }
+
+    public RecoveryProposalFilterDto mapToDto(ProposalEntity proposalEntity, int votes){
+        RecoveryProposalFilterDto recoveryProposalDto = RecoveryProposalFilterDto.builder()
+                .id(proposalEntity.getId())
+                .title(proposalEntity.getTitle())
+                .description(proposalEntity.getDescription())
+                .category(proposalEntity.getCategoryEntity().getTitle())
+                .icon(proposalEntity.getCategoryEntity().getIcon())
+                .votes(votes)
+                .createdAt(proposalEntity.getCreatedAt().toString())
+                .build();
+        return recoveryProposalDto;
+    }
+
+    public <T> T mapToDto(ProposalEntity proposalEntity, int voteCount, Class<T> dtoClass) {
+        T dto = modelMapper.map(proposalEntity, dtoClass);
+        if (dto instanceof RecoveryProposalFilterDto) {
+            ((RecoveryProposalFilterDto) dto).setVotes(voteCount);
+        }
         return dto;
     }
 
@@ -181,6 +204,27 @@ public class ProposalService {
                 .map(proposal -> mapToDto(proposal,RecoveryTrendingProposalDto.class))
                 .collect(Collectors.toList());
         return ResponseEntity.status(HttpStatus.OK).body(recoveryProposalDtoList);
+    }
+
+    public ResponseEntity<PaginatedProposalsResponse> filterByDescriptionOrTitle(String text,int page, int size, String sort){
+        CycleEntity currentCycle = getCurrentCycleOrThrow();
+        Situation situation = Situation.OPEN_FOR_VOTING;
+        Pageable pageable = PageRequest.of(page, size);
+        Page<ProposalEntity> proposalEntityList = proposalRepository.findByCycleEntityAndTitleContainingAndSituationOrCycleEntityAndDescriptionContainingAndSituation(currentCycle,text,situation,currentCycle,text,situation,pageable);
+
+
+        List <RecoveryProposalFilterDto> recoveryProposalDtoList = proposalEntityList.stream()
+                .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal)))
+                .collect(Collectors.toList());
+
+        PaginatedProposalsResponse response = PaginatedProposalsResponse.builder()
+                .proposals(recoveryProposalDtoList)
+                .totalElements(proposalEntityList.getTotalElements())
+                .totalPages(proposalEntityList.getTotalPages())
+                .currentPage(proposalEntityList.getNumber())
+                .build();
+        response.sortProposals(sort);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     private CycleEntity getCurrentCycleOrThrow(){
