@@ -247,4 +247,13 @@ public class ProposalService {
     public boolean categoryHasProposals(CategoryEntity categoryEntity){
         return !proposalRepository.findAllByCategoryEntity(categoryEntity).isEmpty();
     }
+
+    public ResponseEntity<Object> limit(){
+        CycleEntity currentCycle = getCurrentCycleOrThrow();
+        Long createdProposals = proposalRepository.countByUserEntityAndCycleEntityAndActiveTrue(SecurityUtil.getAuthenticatedUser(),currentCycle);
+        RecoveryLimitDto recoveryLimitDto = RecoveryLimitDto.builder()
+                .available(PROPOSALS_LIMIT - createdProposals)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(recoveryLimitDto);
+    }
 }

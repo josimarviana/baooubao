@@ -3,6 +3,7 @@ package br.app.iftmparacatu.baoounao.domain.services;
 import br.app.iftmparacatu.baoounao.api.exception.EntityNotFoundException;
 import br.app.iftmparacatu.baoounao.api.exception.NotAllowedOperation;
 import br.app.iftmparacatu.baoounao.domain.dtos.input.VotingDto;
+import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryLimitDto;
 import br.app.iftmparacatu.baoounao.domain.model.*;
 import br.app.iftmparacatu.baoounao.domain.repository.VotingRepository;
 import br.app.iftmparacatu.baoounao.domain.util.ResponseUtil;
@@ -64,4 +65,12 @@ public class VotingService {
         return  votingRepository.countByProposalEntityCycleEntity(cycleEntity);
     }
 
+    public ResponseEntity<Object> limit(){
+        CycleEntity currentCycle = cycleService.findProgressCycle().get();
+        Long userVotesCurrentCycle = votingRepository.countByUserEntityAndProposalEntityCycleEntity(SecurityUtil.getAuthenticatedUser(),currentCycle);
+        RecoveryLimitDto recoveryLimitDto = RecoveryLimitDto.builder()
+                .available(VOTES_LIMIT - userVotesCurrentCycle)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(recoveryLimitDto);
+    }
 }

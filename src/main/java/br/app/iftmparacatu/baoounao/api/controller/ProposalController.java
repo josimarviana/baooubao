@@ -94,4 +94,9 @@ public class ProposalController {
     public ResponseEntity<Object> count(){
         return proposalService.dashboardCount();
     }
+
+    @GetMapping("/limit")
+    public ResponseEntity<Object> limit(){
+        return proposalService.limit();
+    }
 }
