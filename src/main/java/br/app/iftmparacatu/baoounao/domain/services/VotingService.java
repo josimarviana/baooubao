@@ -43,7 +43,7 @@ public class VotingService {
         if(userVotesCurrentProposal != 0){
             throw new NotAllowedOperation("Você já votou nesta proposta. Não é permitido votar mais de uma vez na mesma proposta.");
         }
-        if (userVotesCurrentCycle == 3){ //TODO: tavlez fique interessante parametrizar a quantidade de votos por ciclo em uma configuração do sistema
+        if (userVotesCurrentCycle == VOTES_LIMIT){
             throw new NotAllowedOperation(String.format("Você atingiu o limite máximo de %d votos para o ciclo atual. Não é permitido votar em mais do que %d propostas.",VOTES_LIMIT,VOTES_LIMIT));
         }
 
