@@ -8,6 +8,7 @@ import br.app.iftmparacatu.baoounao.domain.repository.VotingRepository;
 import br.app.iftmparacatu.baoounao.domain.util.ResponseUtil;
 import br.app.iftmparacatu.baoounao.domain.util.SecurityUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -18,9 +19,11 @@ import java.util.Optional;
 public class VotingService {
     @Autowired
     private VotingRepository votingRepository;
-
     @Autowired
     private CycleService cycleService;
+
+    @Value("${config.votes.limit}")
+    private int VOTES_LIMIT;
 
     public int countByProposalEntity(ProposalEntity proposalEntity){
         return votingRepository.countByProposalEntity(proposalEntity);
@@ -40,7 +43,7 @@ public class VotingService {
             throw new NotAllowedOperation("Você já votou nesta proposta. Não é permitido votar mais de uma vez na mesma proposta.");
         }
         if (userVotesCurrentCycle == 3){ //TODO: tavlez fique interessante parametrizar a quantidade de votos por ciclo em uma configuração do sistema
-            throw new NotAllowedOperation("Você atingiu o limite máximo de 3 votos para o ciclo atual. Não é permitido votar em mais do que 3 propostas.");
+            throw new NotAllowedOperation(String.format("Você atingiu o limite máximo de %d votos para o ciclo atual. Não é permitido votar em mais do que %d propostas.",VOTES_LIMIT));
         }
 
 
