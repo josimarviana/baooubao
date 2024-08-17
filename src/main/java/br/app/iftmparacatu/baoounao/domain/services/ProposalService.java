@@ -128,7 +128,7 @@ public class ProposalService {
 
     public ResponseEntity<Object> trendingProposals(){
         CycleEntity currentCycle = getCurrentCycleOrThrow();
-        List<ProposalEntity> proposalEntityList = proposalRepository.findAllByCycleEntityAndActiveTrue(currentCycle);
+        List<ProposalEntity> proposalEntityList = proposalRepository.findAllByCycleEntityAndActiveTrueAndSituation(currentCycle, Situation.OPEN_FOR_VOTING);
         List<RecoveryProposalFilterDto> recoveryProposalDtoList = proposalEntityList.stream()
                                                             .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal)))
                                                             .collect(Collectors.toList());

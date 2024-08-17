@@ -22,7 +22,7 @@ public interface ProposalRepository extends JpaRepository<ProposalEntity,Long> {
     Page<ProposalEntity> findByCycleEntityAndTitleContainingAndSituationOrCycleEntityAndDescriptionContainingAndSituation(
             CycleEntity cycleEntity1, String text1, Situation situation1,
             CycleEntity cycleEntity2, String text2, Situation situation2,Pageable pageable);
-    List<ProposalEntity> findAllByCycleEntityAndActiveTrue(CycleEntity cycleEntity);
+    List<ProposalEntity> findAllByCycleEntityAndActiveTrueAndSituation(CycleEntity cycleEntity,Situation situation);
     List<ProposalEntity> findByCycleEntityAndSituationAndActiveTrueOrderByCreatedAtDesc(CycleEntity cycleEntity, Situation situation);
     List<ProposalEntity> findByCycleEntity(CycleEntity cycleEntity);
     List<ProposalEntity> findAllByUserEntityAndCycleEntityAndActiveTrueOrderByCreatedAtDesc(UserEntity userEntity,CycleEntity cycleEntity);
