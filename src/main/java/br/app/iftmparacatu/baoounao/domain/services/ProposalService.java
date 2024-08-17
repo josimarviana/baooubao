@@ -70,6 +70,7 @@ public class ProposalService {
                 .id(proposalId)
                 .title(recoveredProposal.getTitle())
                 .description(recoveredProposal.getDescription())
+                .situation(recoveredProposal.getSituation().toString())
                 .image(recoveredProposal.getImage())
                 .author(recoveredProposal.getUserEntity().getName())
                 .likes(votingService.countByProposalEntity(recoveredProposal))
