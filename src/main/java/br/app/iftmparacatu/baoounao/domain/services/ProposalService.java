@@ -14,6 +14,7 @@ import br.app.iftmparacatu.baoounao.domain.util.ResponseUtil;
 import br.app.iftmparacatu.baoounao.domain.util.SecurityUtil;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -41,6 +42,8 @@ public class ProposalService {
 
     @Autowired
     private VotingService votingService;
+    @Value("${config.proposals.limit}")
+    private int PROPOSALS_LIMIT;
 
     @Autowired
     private CycleService cycleService;
@@ -70,6 +73,7 @@ public class ProposalService {
                 .id(proposalId)
                 .title(recoveredProposal.getTitle())
                 .description(recoveredProposal.getDescription())
+                .situation(recoveredProposal.getSituation().toString())
                 .image(recoveredProposal.getImage())
                 .author(recoveredProposal.getUserEntity().getName())
                 .likes(votingService.countByProposalEntity(recoveredProposal))
@@ -84,8 +88,8 @@ public class ProposalService {
     public ResponseEntity<Object> save(String tittle,String description,String url,MultipartFile image,String category){
         CycleEntity currentCycle = getCurrentCycleOrThrow("Não foram encontrados ciclos em andamento. Para cadastrar uma proposta, é necessário primeiro cadastrar um ciclo.");
 
-        if(proposalRepository.countByUserEntityAndCycleEntityAndActiveTrue(SecurityUtil.getAuthenticatedUser(),currentCycle) == 3)
-            throw new NotAllowedOperation("O limite de 3 propostas foi atingido. Não é possível cadastrar mais propostas.");
+        if(proposalRepository.countByUserEntityAndCycleEntityAndActiveTrue(SecurityUtil.getAuthenticatedUser(),currentCycle) == PROPOSALS_LIMIT)
+            throw new NotAllowedOperation(String.format("O limite de %d propostas foi atingido. Não é possível cadastrar mais propostas.",PROPOSALS_LIMIT));
 
         CategoryEntity categoryEntity = categoryRepository.findByTitleAndActiveTrue(category).orElseThrow(() -> new EntityNotFoundException(String.format("Categoria de nome %s não encontrada!", category)));
         try{
@@ -124,7 +128,7 @@ public class ProposalService {
 
     public ResponseEntity<Object> trendingProposals(){
         CycleEntity currentCycle = getCurrentCycleOrThrow();
-        List<ProposalEntity> proposalEntityList = proposalRepository.findAllByCycleEntityAndActiveTrue(currentCycle);
+        List<ProposalEntity> proposalEntityList = proposalRepository.findAllByCycleEntityAndActiveTrueAndSituation(currentCycle, Situation.OPEN_FOR_VOTING);
         List<RecoveryProposalFilterDto> recoveryProposalDtoList = proposalEntityList.stream()
                                                             .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal)))
                                                             .collect(Collectors.toList());
@@ -242,5 +246,14 @@ public class ProposalService {
 
     public boolean categoryHasProposals(CategoryEntity categoryEntity){
         return !proposalRepository.findAllByCategoryEntity(categoryEntity).isEmpty();
+    }
+
+    public ResponseEntity<Object> limit(){
+        CycleEntity currentCycle = getCurrentCycleOrThrow();
+        Long createdProposals = proposalRepository.countByUserEntityAndCycleEntityAndActiveTrue(SecurityUtil.getAuthenticatedUser(),currentCycle);
+        RecoveryLimitDto recoveryLimitDto = RecoveryLimitDto.builder()
+                .available(PROPOSALS_LIMIT - createdProposals)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(recoveryLimitDto);
     }
 }

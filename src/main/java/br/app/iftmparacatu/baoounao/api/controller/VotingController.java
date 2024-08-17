@@ -28,4 +28,9 @@ public class VotingController {
     public ResponseEntity<Object> unvote(@RequestBody @Valid VotingDto votingDto) {
         return votingService.remove(votingDto);
     }
+
+    @GetMapping("/limit")
+    public ResponseEntity<Object> limit(){
+        return votingService.limit();
+    }
 }
