@@ -7,7 +7,7 @@ import br.app.iftmparacatu.baoounao.api.exception.InvalidDomainException;
 import br.app.iftmparacatu.baoounao.config.SecurityConfig;
 import br.app.iftmparacatu.baoounao.domain.dtos.input.CreateUserDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.input.LoginUserDto;
-import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryJwtTokenDto;
+import br.app.iftmparacatu.baoounao.domain.dtos.output.*;
 import br.app.iftmparacatu.baoounao.domain.enums.RoleName;
 import br.app.iftmparacatu.baoounao.domain.enums.UserType;
 import br.app.iftmparacatu.baoounao.domain.model.RoleEntity;
@@ -15,8 +15,12 @@ import br.app.iftmparacatu.baoounao.domain.model.UserEntity;
 import br.app.iftmparacatu.baoounao.domain.repository.RoleRepository;
 import br.app.iftmparacatu.baoounao.domain.repository.UserRepository;
 import jakarta.mail.MessagingException;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -31,6 +35,7 @@ import java.security.SecureRandom;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -57,6 +62,9 @@ public class UserService {
 
     @Autowired
     ConfirmTokenService confirmationTokenService;
+
+    @Autowired
+    private ModelMapper modelMapper;
 
     // Método responsável por autenticar um usuário e retornar um token JWT
     public RecoveryJwtTokenDto authenticateUser(LoginUserDto loginUserDto) {
@@ -120,6 +128,42 @@ public class UserService {
                 "estudante.iftm.edu.br", List.of(UserType.ESTUDANTE)
         );
         return domainToUserTypes.getOrDefault(domain, List.of()).contains(userType);
+    }
+
+    private RecoveryUserDto mapToDto(UserEntity userEntity){
+        RecoveryUserDto recoveryUserDto = RecoveryUserDto.builder()
+                .id(userEntity.getId())
+                .name(userEntity.getName())
+                .email(userEntity.getEmail())
+                .type(userEntity.getType().toString())
+                .active(userEntity.isActive())
+                .roles(userEntity.getRoles().stream()
+                        .map(RoleEntity::toString)
+                        .collect(Collectors.toList()))
+                .createdAt(userEntity.getCreatedAt())
+                //.roles(userEntity.getRoles())
+                .createdAt(userEntity.getCreatedAt())
+                .build();
+        return recoveryUserDto;
+    }
+
+    public ResponseEntity<PaginatedUsersResponse> findAll(String text, int page, int size, String sort){
+        Pageable pageable = PageRequest.of(page, size);
+        Page<UserEntity> userEntityPageable =  userRepository.findByNameContainingOrEmailContaining(text,text,pageable);
+
+        List <RecoveryUserDto> recoveryUsersDtoList = userEntityPageable.stream()
+                .map(user -> mapToDto(user))
+                .collect(Collectors.toList());
+
+        PaginatedUsersResponse response = PaginatedUsersResponse.builder()
+                .users(recoveryUsersDtoList)
+                .totalElements(userEntityPageable.getTotalElements())
+                .totalPages(userEntityPageable.getTotalPages())
+                .currentPage(userEntityPageable.getNumber())
+                .build();
+        response.sortUsers(sort);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
 

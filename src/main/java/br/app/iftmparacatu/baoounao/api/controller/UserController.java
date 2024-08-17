@@ -2,6 +2,7 @@ package br.app.iftmparacatu.baoounao.api.controller;
 
 import br.app.iftmparacatu.baoounao.domain.dtos.input.CreateUserDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.input.LoginUserDto;
+import br.app.iftmparacatu.baoounao.domain.dtos.output.PaginatedUsersResponse;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryJwtTokenDto;
 import br.app.iftmparacatu.baoounao.domain.model.UserEntity;
 import br.app.iftmparacatu.baoounao.domain.repository.UserRepository;
@@ -24,9 +25,9 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @GetMapping
-    public List<UserEntity> list(){
-        return userRepository.findAll();
+    @GetMapping("/filter")
+    public ResponseEntity<PaginatedUsersResponse> list(@RequestParam(value = "page", defaultValue = "0") int page, @RequestParam(value = "size", defaultValue = "9") int size, @RequestParam(value = "contain", required = false) String text, @RequestParam(value = "sort", defaultValue = "recent") String sort ){
+        return userService.findAll(text,page,size,sort);
     }
 
     @GetMapping("/{id}")
