@@ -63,14 +63,6 @@ public class ProposalService {
         return recoveryProposalDto;
     }
 
-    public <T> T mapToDto(ProposalEntity proposalEntity, int voteCount, Class<T> dtoClass) {
-        T dto = modelMapper.map(proposalEntity, dtoClass);
-        if (dto instanceof RecoveryProposalFilterDto) {
-            ((RecoveryProposalFilterDto) dto).setVotes(voteCount);
-        }
-        return dto;
-    }
-
     public ResponseEntity<Object> findById(Long proposalId){
         Optional<ProposalEntity> proposal = Optional.ofNullable(proposalRepository.findById(proposalId).orElseThrow(() -> new EntityNotFoundException(String.format("Proposta de id %d não foi encontrada",proposalId))));
         ProposalEntity recoveredProposal = proposal.get();
@@ -132,10 +124,9 @@ public class ProposalService {
 
     public ResponseEntity<Object> trendingProposals(){
         CycleEntity currentCycle = getCurrentCycleOrThrow();
-        PageRequest pageRequest = PageRequest.of(0, 3);
         List<ProposalEntity> proposalEntityList = proposalRepository.findAllByCycleEntityAndActiveTrue(currentCycle);
         List<RecoveryProposalFilterDto> recoveryProposalDtoList = proposalEntityList.stream()
-                                                            .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal),RecoveryProposalFilterDto.class))
+                                                            .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal)))
                                                             .collect(Collectors.toList());
         return ResponseEntity.status(HttpStatus.OK).body(recoveryProposalDtoList.stream()
                                                         .sorted(Comparator.comparingInt(RecoveryProposalFilterDto::getVotes).reversed())
