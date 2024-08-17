@@ -104,10 +104,12 @@ public class UserService {
                     confirmationTokenService.delete(t);
                     URI redirectUri = URI.create(url_redirect);
                     return ResponseEntity.status(HttpStatus.FOUND).location(redirectUri).build();
-                })
-                .orElseGet(() -> ResponseEntity.badRequest().body("Token inválido ou expirado"));
+                }) .orElseGet(() -> {
+        confirmationTokenService.findByToken(token)
+                .ifPresent(confirmationTokenService::delete);
+        return ResponseEntity.badRequest().body("Token inválido ou expirado");
+                });
     }
-
     private boolean isValidDomainAndType(CreateUserDto createUserDto) {
         String email = createUserDto.email();
         String domain = email.substring(email.lastIndexOf("@") + 1);
