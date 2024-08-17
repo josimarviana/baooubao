@@ -5,7 +5,7 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-public class RecoveryTrendingProposalDto {
+public class RecoveryBasicProposalDto {
     private Long id;
     private String title;
     private String description;

@@ -1,7 +1,7 @@
 package br.app.iftmparacatu.baoounao.config;
 
 import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryProposalDto;
-import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryTrendingProposalDto;
+import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryBasicProposalDto;
 import br.app.iftmparacatu.baoounao.domain.model.ProposalEntity;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
@@ -28,7 +28,7 @@ public class ModelMapperConfig {
             }
         });
 
-        modelMapper.addMappings(new PropertyMap<ProposalEntity, RecoveryTrendingProposalDto>() {
+        modelMapper.addMappings(new PropertyMap<ProposalEntity, RecoveryBasicProposalDto>() {
             @Override
             protected void configure() {
                 map().setIcon(source.getCategoryEntity().getIcon());

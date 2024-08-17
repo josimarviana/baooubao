@@ -21,6 +21,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -59,14 +61,6 @@ public class ProposalService {
                 .createdAt(proposalEntity.getCreatedAt().toString())
                 .build();
         return recoveryProposalDto;
-    }
-
-    public <T> T mapToDto(ProposalEntity proposalEntity, int voteCount, Class<T> dtoClass) {
-        T dto = modelMapper.map(proposalEntity, dtoClass);
-        if (dto instanceof RecoveryProposalFilterDto) {
-            ((RecoveryProposalFilterDto) dto).setVotes(voteCount);
-        }
-        return dto;
     }
 
     public ResponseEntity<Object> findById(Long proposalId){
@@ -111,31 +105,33 @@ public class ProposalService {
         }
     };
 
-    public List<RecoveryTrendingProposalDto> findAll(){ //Este endpoint lista todas as propostas pendentes de moderação
+    public List<RecoveryBasicProposalDto> findAll(){ //Este endpoint lista todas as propostas pendentes de moderação
         CycleEntity currentCycle = getCurrentCycleOrThrow();
         List<ProposalEntity> proposals = proposalRepository.findByCycleEntityAndSituationAndActiveTrueOrderByCreatedAtDesc(currentCycle,Situation.PENDING_MODERATION);
         return proposals.stream()
-                .map(proposal -> mapToDto(proposal,RecoveryTrendingProposalDto.class))
+                .map(proposal -> mapToDto(proposal, RecoveryBasicProposalDto.class))
                 .collect(Collectors.toList());
     }
 
     public ResponseEntity<Object> myProposals(){
         CycleEntity currentCycle = getCurrentCycleOrThrow();
         List<ProposalEntity> proposalEntityList = proposalRepository.findAllByUserEntityAndCycleEntityAndActiveTrueOrderByCreatedAtDesc(SecurityUtil.getAuthenticatedUser(),currentCycle);
-        List <RecoveryTrendingProposalDto> recoveryProposalDtoList = proposalEntityList.stream()
-                                                             .map(proposal -> mapToDto(proposal,RecoveryTrendingProposalDto.class))
+        List <RecoveryBasicProposalDto> recoveryProposalDtoList = proposalEntityList.stream()
+                                                             .map(proposal -> mapToDto(proposal, RecoveryBasicProposalDto.class))
                                                              .collect(Collectors.toList());
         return ResponseEntity.status(HttpStatus.OK).body(recoveryProposalDtoList);
     }
 
     public ResponseEntity<Object> trendingProposals(){
         CycleEntity currentCycle = getCurrentCycleOrThrow();
-        PageRequest pageRequest = PageRequest.of(0, 3);
-        List<ProposalEntity> proposalEntityList = proposalRepository.findAllByCycleEntityAndActiveTrueOrderByVotesDesc(pageRequest,currentCycle).getContent();
-        List<RecoveryTrendingProposalDto> recoveryProposalDtoList = proposalEntityList.stream()
-                                                            .map(proposal -> mapToDto(proposal,RecoveryTrendingProposalDto.class))
+        List<ProposalEntity> proposalEntityList = proposalRepository.findAllByCycleEntityAndActiveTrue(currentCycle);
+        List<RecoveryProposalFilterDto> recoveryProposalDtoList = proposalEntityList.stream()
+                                                            .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal)))
                                                             .collect(Collectors.toList());
-        return ResponseEntity.status(HttpStatus.OK).body(recoveryProposalDtoList);
+        return ResponseEntity.status(HttpStatus.OK).body(recoveryProposalDtoList.stream()
+                                                        .sorted(Comparator.comparingInt(RecoveryProposalFilterDto::getVotes).reversed())
+                                                        .limit(3)
+                                                        .collect(Collectors.toList()));
     }
     public ResponseEntity<Object> update(Long proposalID, UpdateProposalDto updateProposalDto) {
         ProposalEntity existingProposal = checkDeleteOrUpdateProposal(true,proposalID);
@@ -195,17 +191,6 @@ public class ProposalService {
         Optional<ProposalEntity> proposal = Optional.ofNullable(proposalRepository.findById(proposalId).orElseThrow(() -> new EntityNotFoundException(String.format("Proposta de id %d não foi encontrada",proposalId))));
         return ResponseEntity.status(HttpStatus.OK).body(new RecoveryVoteProposalDto(votingService.hasVoted(SecurityUtil.getAuthenticatedUser(),proposal.get())));
     }
-    public ResponseEntity<Object> filterByDescriptionOrTitle(String text){
-        CycleEntity currentCycle = getCurrentCycleOrThrow();
-        Situation situation = Situation.OPEN_FOR_VOTING;
-        List<ProposalEntity> proposalEntityList = proposalRepository.findByCycleEntityAndTitleContainingAndSituationOrCycleEntityAndDescriptionContainingAndSituation(currentCycle,text,situation,currentCycle,text,situation);
-
-        List <RecoveryTrendingProposalDto> recoveryProposalDtoList = proposalEntityList.stream()
-                .map(proposal -> mapToDto(proposal,RecoveryTrendingProposalDto.class))
-                .collect(Collectors.toList());
-        return ResponseEntity.status(HttpStatus.OK).body(recoveryProposalDtoList);
-    }
-
     public ResponseEntity<PaginatedProposalsResponse> filterByDescriptionOrTitle(String text,int page, int size, String sort){
         CycleEntity currentCycle = getCurrentCycleOrThrow();
         Situation situation = Situation.OPEN_FOR_VOTING;
