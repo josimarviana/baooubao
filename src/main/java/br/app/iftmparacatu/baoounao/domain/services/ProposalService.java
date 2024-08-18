@@ -68,7 +68,7 @@ public class ProposalService {
                 .category(proposalEntity.getCategoryEntity().getTitle())
                 .icon(proposalEntity.getCategoryEntity().getIcon())
                 .votes(votes)
-                .createdAt(proposalEntity.getCreatedAt().toString())
+                .createdAt(proposalEntity.getCreatedAt())
                 .build();
         return recoveryProposalDto;
     }

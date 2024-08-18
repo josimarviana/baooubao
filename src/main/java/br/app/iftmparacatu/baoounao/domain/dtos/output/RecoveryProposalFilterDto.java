@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
 @Builder
 @AllArgsConstructor
@@ -16,5 +18,5 @@ public class RecoveryProposalFilterDto {
     private String category;
     private String icon;
     private int votes;
-    private String createdAt;
+    private LocalDateTime createdAt;
 }
