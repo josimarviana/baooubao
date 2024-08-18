@@ -24,6 +24,7 @@ public class CycleService {
 
     public Optional<CycleEntity> findProgressCycle(){
         LocalDate date = LocalDate.now();
+        System.out.println(date);
         return cycleRepository.findByStartDateLessThanEqualAndFinishDateGreaterThanEqualAndActiveTrue(date,date);
     }
 
