@@ -1,8 +1,7 @@
 package br.app.iftmparacatu.baoounao.domain.dtos.input;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import br.app.iftmparacatu.baoounao.domain.model.CategoryEntity;
+import lombok.Builder;
 
-import java.time.LocalDate;
-
-public record UpdateProposalDto(String title, String description, String image) {}
+@Builder
+public record UpdateProposalDto(String title, String description, String image, String url, CategoryEntity categoryEntity) {}

@@ -26,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.amazonaws.services.s3.AmazonS3;
 
 import java.io.IOException;
+import java.lang.reflect.Executable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -127,11 +128,16 @@ public class ProposalService {
     }
 
     private String uploadImageToS3(MultipartFile file) throws IOException {
-        String key = generateUniqueKey(file.getOriginalFilename());
+        try{
+            String key = generateUniqueKey(file.getOriginalFilename());
 
-        amazonS3Client.putObject(S3_BUCKET, key, file.getInputStream(), null);
+            amazonS3Client.putObject(S3_BUCKET, key, file.getInputStream(), null);
 
-        return amazonS3Client.getUrl(S3_BUCKET, key).toString();
+            return amazonS3Client.getUrl(S3_BUCKET, key).toString();
+        }catch (IOException e) {
+            throw new RuntimeException("Erro ao fazer upload da imagem para o S3", e);
+        }
+
     }
 
     public List<RecoveryBasicProposalDto> findAll(){ //Este endpoint lista todas as propostas pendentes de moderação
@@ -151,6 +157,11 @@ public class ProposalService {
         return ResponseEntity.status(HttpStatus.OK).body(recoveryProposalDtoList);
     }
 
+    private CategoryEntity findActiveCategory(String category) {
+        return categoryRepository.findByTitleAndActiveTrue(category)
+                .orElseThrow(() -> new EntityNotFoundException(String.format("Categoria de nome %s não encontrada!", category)));
+    }
+
     public ResponseEntity<Object> trendingProposals(){
         CycleEntity currentCycle = getCurrentCycleOrThrow();
         List<ProposalEntity> proposalEntityList = proposalRepository.findAllByCycleEntityAndActiveTrueAndSituation(currentCycle, Situation.OPEN_FOR_VOTING);
@@ -162,14 +173,40 @@ public class ProposalService {
                 .limit(3)
                 .collect(Collectors.toList()));
     }
-    public ResponseEntity<Object> update(Long proposalID, UpdateProposalDto updateProposalDto) {
+    @Transactional
+    public ResponseEntity<Object> update(Long proposalID, String tittle,String description,String url,MultipartFile image,String category) throws IOException {
         ProposalEntity existingProposal = checkDeleteOrUpdateProposal(true,proposalID);
+
+        CategoryEntity categoryEntity = Optional.ofNullable(category)
+                .map(this::findActiveCategory)
+                .orElse(null);
+
+        String imageUrl = Optional.ofNullable(image)
+                .filter(img -> !img.isEmpty())
+                .map(img -> {
+                    try {
+                        return uploadImageToS3(img);
+                    } catch (IOException e) {
+                        throw new RuntimeException("Erro ao fazer upload da imagem", e);
+                    }
+                })
+                .orElse(null);
+
+        UpdateProposalDto updateProposalDto = UpdateProposalDto.builder()
+                .title(tittle)
+                .description(description)
+                .categoryEntity(categoryEntity)
+                .url(url)
+                .image(imageUrl)
+                .build();
         Optional.ofNullable(updateProposalDto.title())
                 .ifPresent(existingProposal::setTitle);
         Optional.ofNullable(updateProposalDto.description())
                 .ifPresent(existingProposal::setDescription);
         Optional.ofNullable(updateProposalDto.image())
                 .ifPresent(existingProposal::setImage);
+        Optional.ofNullable(updateProposalDto.categoryEntity())
+                .ifPresent(existingProposal::setCategoryEntity);
         existingProposal.setSituation(Situation.PENDING_MODERATION);
         proposalRepository.save(existingProposal);
 
