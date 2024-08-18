@@ -5,4 +5,4 @@ import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
 
-public record UpdateProposalDto(String title, String description, byte[] image) {}
+public record UpdateProposalDto(String title, String description, String image) {}

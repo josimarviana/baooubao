@@ -12,6 +12,7 @@ import br.app.iftmparacatu.baoounao.domain.repository.CategoryRepository;
 import br.app.iftmparacatu.baoounao.domain.repository.ProposalRepository;
 import br.app.iftmparacatu.baoounao.domain.util.ResponseUtil;
 import br.app.iftmparacatu.baoounao.domain.util.SecurityUtil;
+import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,11 +23,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import com.amazonaws.services.s3.AmazonS3;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -44,9 +46,14 @@ public class ProposalService {
     private VotingService votingService;
     @Value("${config.proposals.limit}")
     private int PROPOSALS_LIMIT;
+    @Value("${cloud.aws.s3.bucket}")
+    private String S3_BUCKET;
 
     @Autowired
     private CycleService cycleService;
+
+    @Autowired
+    private AmazonS3 amazonS3Client;
 
     public <T>  T mapToDto(ProposalEntity proposalEntity , Class<T> dtoClass) {
         T dto = modelMapper.map(proposalEntity, dtoClass);
@@ -84,7 +91,7 @@ public class ProposalService {
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(recoveryProposalDto);
     }
-
+    @Transactional
     public ResponseEntity<Object> save(String tittle,String description,String url,MultipartFile image,String category){
         CycleEntity currentCycle = getCurrentCycleOrThrow("Não foram encontrados ciclos em andamento. Para cadastrar uma proposta, é necessário primeiro cadastrar um ciclo.");
 
@@ -93,11 +100,12 @@ public class ProposalService {
 
         CategoryEntity categoryEntity = categoryRepository.findByTitleAndActiveTrue(category).orElseThrow(() -> new EntityNotFoundException(String.format("Categoria de nome %s não encontrada!", category)));
         try{
+            String imageUrl = uploadImageToS3(image);
             ProposalEntity proposalEntity = ProposalEntity.builder()
                     .description(description)
                     .title(tittle)
                     .videoUrl(url)
-                    .image(image.getBytes())
+                    .image(imageUrl)
                     .cycleEntity(currentCycle)
                     .categoryEntity(categoryEntity)
                     .build();
@@ -107,7 +115,24 @@ public class ProposalService {
         }catch (Exception e){
             throw  new RuntimeException(e);
         }
-    };
+    }
+
+    private String generateUniqueKey(String originalFilename) {
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+        String formattedDateTime = now.format(formatter);
+        String invertedDateTime = new StringBuilder(formattedDateTime).reverse().toString();
+        String uniqueId = UUID.randomUUID().toString();
+        return invertedDateTime + "_" + uniqueId + "_" + originalFilename;
+    }
+
+    private String uploadImageToS3(MultipartFile file) throws IOException {
+        String key = generateUniqueKey(file.getOriginalFilename());
+
+        amazonS3Client.putObject(S3_BUCKET, key, file.getInputStream(), null);
+
+        return amazonS3Client.getUrl(S3_BUCKET, key).toString();
+    }
 
     public List<RecoveryBasicProposalDto> findAll(){ //Este endpoint lista todas as propostas pendentes de moderação
         CycleEntity currentCycle = getCurrentCycleOrThrow();
@@ -121,8 +146,8 @@ public class ProposalService {
         CycleEntity currentCycle = getCurrentCycleOrThrow();
         List<ProposalEntity> proposalEntityList = proposalRepository.findAllByUserEntityAndCycleEntityAndActiveTrueOrderByCreatedAtDesc(SecurityUtil.getAuthenticatedUser(),currentCycle);
         List <RecoveryBasicProposalDto> recoveryProposalDtoList = proposalEntityList.stream()
-                                                             .map(proposal -> mapToDto(proposal, RecoveryBasicProposalDto.class))
-                                                             .collect(Collectors.toList());
+                .map(proposal -> mapToDto(proposal, RecoveryBasicProposalDto.class))
+                .collect(Collectors.toList());
         return ResponseEntity.status(HttpStatus.OK).body(recoveryProposalDtoList);
     }
 
@@ -130,12 +155,12 @@ public class ProposalService {
         CycleEntity currentCycle = getCurrentCycleOrThrow();
         List<ProposalEntity> proposalEntityList = proposalRepository.findAllByCycleEntityAndActiveTrueAndSituation(currentCycle, Situation.OPEN_FOR_VOTING);
         List<RecoveryProposalFilterDto> recoveryProposalDtoList = proposalEntityList.stream()
-                                                            .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal)))
-                                                            .collect(Collectors.toList());
+                .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal)))
+                .collect(Collectors.toList());
         return ResponseEntity.status(HttpStatus.OK).body(recoveryProposalDtoList.stream()
-                                                        .sorted(Comparator.comparingInt(RecoveryProposalFilterDto::getVotes).reversed())
-                                                        .limit(3)
-                                                        .collect(Collectors.toList()));
+                .sorted(Comparator.comparingInt(RecoveryProposalFilterDto::getVotes).reversed())
+                .limit(3)
+                .collect(Collectors.toList()));
     }
     public ResponseEntity<Object> update(Long proposalID, UpdateProposalDto updateProposalDto) {
         ProposalEntity existingProposal = checkDeleteOrUpdateProposal(true,proposalID);
