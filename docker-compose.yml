@@ -20,4 +20,7 @@ services:
       - URL_REDIRECT=${URL_REDIRECT}
       - PROPOSAL_LIMIT=${PROPOSAL_LIMIT}
       - VOTES_LIMIT=${VOTES_LIMIT}
+      - S3_ACESS_KEY=${S3_ACESS_KEY}
+      - S3_SECRET_KEY=${S3_SECRET_KEY}
+      - S3_BUCKET=${S3_BUCKET}
       - TZ=America/Sao_Paulo

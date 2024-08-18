@@ -14,7 +14,7 @@ public class RecoveryProposalDto {
     private Long id;
     private String title;
     private String description;
-    private byte [] image;
+    private String image;
     private String author;
     private int likes;
     private String category;

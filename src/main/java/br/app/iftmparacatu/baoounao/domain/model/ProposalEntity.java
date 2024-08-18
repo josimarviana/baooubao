@@ -39,9 +39,8 @@ public class ProposalEntity {
     private LocalDateTime createdAt;
     @Column(length = 100)
     private String videoUrl;
-    @Lob
-    @Column(columnDefinition = "LONGBLOB")
-    private byte [] image;
+    @Column
+    private String image;
     @JoinColumn(name = "user_entity_id")
     @ManyToOne
     private UserEntity userEntity;
