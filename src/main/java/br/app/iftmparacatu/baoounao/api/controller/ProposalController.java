@@ -61,8 +61,13 @@ public class ProposalController {
 
 
     @PatchMapping("/{proposalID}")
-    public ResponseEntity<Object> updateProposal(@PathVariable Long proposalID, @RequestBody UpdateProposalDto updateProposalDto){
-        return proposalService.update(proposalID,updateProposalDto);
+    public ResponseEntity<Object> updateProposal(@PathVariable Long proposalID,
+                                                 @RequestParam(value = "title",required = false) String tittle,
+                                                 @RequestParam(value = "description", required = false) String description,
+                                                 @RequestParam(value = "url", required = false) String url,
+                                                 @RequestParam(value = "image", required = false) MultipartFile image,
+                                                 @RequestParam(value = "category", required = false) String category) throws IOException {
+        return proposalService.update(proposalID,tittle, description, url, image, category);
     }
 
     @PatchMapping("/moderate/approve/{proposalID}")

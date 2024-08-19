@@ -26,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.amazonaws.services.s3.AmazonS3;
 
 import java.io.IOException;
+import java.lang.reflect.Executable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -68,7 +69,7 @@ public class ProposalService {
                 .category(proposalEntity.getCategoryEntity().getTitle())
                 .icon(proposalEntity.getCategoryEntity().getIcon())
                 .votes(votes)
-                .createdAt(proposalEntity.getCreatedAt().toString())
+                .createdAt(proposalEntity.getCreatedAt())
                 .build();
         return recoveryProposalDto;
     }
@@ -127,11 +128,16 @@ public class ProposalService {
     }
 
     private String uploadImageToS3(MultipartFile file) throws IOException {
-        String key = generateUniqueKey(file.getOriginalFilename());
+        try{
+            String key = generateUniqueKey(file.getOriginalFilename());
 
-        amazonS3Client.putObject(S3_BUCKET, key, file.getInputStream(), null);
+            amazonS3Client.putObject(S3_BUCKET, key, file.getInputStream(), null);
 
-        return amazonS3Client.getUrl(S3_BUCKET, key).toString();
+            return amazonS3Client.getUrl(S3_BUCKET, key).toString();
+        }catch (IOException e) {
+            throw new RuntimeException("Erro ao fazer upload da imagem para o S3", e);
+        }
+
     }
 
     public List<RecoveryBasicProposalDto> findAll(){ //Este endpoint lista todas as propostas pendentes de moderação
@@ -151,6 +157,11 @@ public class ProposalService {
         return ResponseEntity.status(HttpStatus.OK).body(recoveryProposalDtoList);
     }
 
+    private CategoryEntity findActiveCategory(String category) {
+        return categoryRepository.findByTitleAndActiveTrue(category)
+                .orElseThrow(() -> new EntityNotFoundException(String.format("Categoria de nome %s não encontrada!", category)));
+    }
+
     public ResponseEntity<Object> trendingProposals(){
         CycleEntity currentCycle = getCurrentCycleOrThrow();
         List<ProposalEntity> proposalEntityList = proposalRepository.findAllByCycleEntityAndActiveTrueAndSituation(currentCycle, Situation.OPEN_FOR_VOTING);
@@ -162,14 +173,40 @@ public class ProposalService {
                 .limit(3)
                 .collect(Collectors.toList()));
     }
-    public ResponseEntity<Object> update(Long proposalID, UpdateProposalDto updateProposalDto) {
+    @Transactional
+    public ResponseEntity<Object> update(Long proposalID, String tittle,String description,String url,MultipartFile image,String category) throws IOException {
         ProposalEntity existingProposal = checkDeleteOrUpdateProposal(true,proposalID);
+
+        CategoryEntity categoryEntity = Optional.ofNullable(category)
+                .map(this::findActiveCategory)
+                .orElse(null);
+
+        String imageUrl = Optional.ofNullable(image)
+                .filter(img -> !img.isEmpty())
+                .map(img -> {
+                    try {
+                        return uploadImageToS3(img);
+                    } catch (IOException e) {
+                        throw new RuntimeException("Erro ao fazer upload da imagem", e);
+                    }
+                })
+                .orElse(null);
+
+        UpdateProposalDto updateProposalDto = UpdateProposalDto.builder()
+                .title(tittle)
+                .description(description)
+                .categoryEntity(categoryEntity)
+                .url(url)
+                .image(imageUrl)
+                .build();
         Optional.ofNullable(updateProposalDto.title())
                 .ifPresent(existingProposal::setTitle);
         Optional.ofNullable(updateProposalDto.description())
                 .ifPresent(existingProposal::setDescription);
         Optional.ofNullable(updateProposalDto.image())
                 .ifPresent(existingProposal::setImage);
+        Optional.ofNullable(updateProposalDto.categoryEntity())
+                .ifPresent(existingProposal::setCategoryEntity);
         existingProposal.setSituation(Situation.PENDING_MODERATION);
         proposalRepository.save(existingProposal);
 
@@ -224,25 +261,51 @@ public class ProposalService {
         CycleEntity currentCycle = getCurrentCycleOrThrow();
         Situation situation = Situation.OPEN_FOR_VOTING;
         Pageable pageable = PageRequest.of(page, size);
-        Page<ProposalEntity> proposalEntityList = proposalRepository.findByCycleEntityAndTitleContainingAndSituationOrCycleEntityAndDescriptionContainingAndSituation(currentCycle,text,situation,currentCycle,text,situation,pageable);
+        List<ProposalEntity> proposalEntityList = proposalRepository.findByCycleEntityAndTitleContainingAndSituationOrCycleEntityAndDescriptionContainingAndSituation(currentCycle,text,situation,currentCycle,text,situation);
 
 
         List <RecoveryProposalFilterDto> recoveryProposalDtoList = proposalEntityList.stream()
                 .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal)))
                 .collect(Collectors.toList());
 
+        // Ordena a lista completa com base no critério fornecido
+        sortProposals(recoveryProposalDtoList, sort);
+        int countReg = recoveryProposalDtoList.size();
+        int start = Math.min(page * size, countReg);
+        int end = Math.min((page + 1) * size, countReg);
+        List<RecoveryProposalFilterDto> paginatedList = recoveryProposalDtoList.subList(start, end);
+
         PaginatedProposalsResponse response = PaginatedProposalsResponse.builder()
-                .proposals(recoveryProposalDtoList)
-                .totalElements(proposalEntityList.getTotalElements())
-                .totalPages(proposalEntityList.getTotalPages())
-                .currentPage(proposalEntityList.getNumber())
+                .proposals(paginatedList)
+                .totalElements(countReg)
+                .totalPages((int) Math.ceil((double) countReg / size))
+                .currentPage(page)
                 .build();
-        response.sortProposals(sort);
+        //response.sortProposals(sort);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     private CycleEntity getCurrentCycleOrThrow(){
         return cycleService.findProgressCycle().orElseThrow(() -> new EntityNotFoundException(String.format("Não foram localizados ciclos em andamento")));
+    }
+
+    private void sortProposals(List<RecoveryProposalFilterDto> proposals, String sort) {
+        switch (sort.toLowerCase()) {
+            case "recent":
+                proposals.sort(Comparator.comparing(RecoveryProposalFilterDto::getCreatedAt).reversed());
+                break;
+            case "oldest":
+                proposals.sort(Comparator.comparing(RecoveryProposalFilterDto::getCreatedAt));
+                break;
+            case "most_votes":
+                proposals.sort(Comparator.comparing(RecoveryProposalFilterDto::getVotes).reversed());
+                break;
+            case "least_votes":
+                proposals.sort(Comparator.comparing(RecoveryProposalFilterDto::getVotes));
+                break;
+            default:
+                break;
+        }
     }
 
     private CycleEntity getCurrentCycleOrThrow(String message){
