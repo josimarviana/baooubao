@@ -268,36 +268,14 @@ public class ProposalService {
                 .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal)))
                 .collect(Collectors.toList());
 
-        sortProposals(recoveryProposalDtoList, sort);
-
         PaginatedProposalsResponse response = PaginatedProposalsResponse.builder()
                 .proposals(recoveryProposalDtoList)
                 .totalElements(proposalEntityList.getTotalElements())
                 .totalPages(proposalEntityList.getTotalPages())
                 .currentPage(proposalEntityList.getNumber())
                 .build();
-        //response.sortProposals(sort);
+        response.sortProposals(sort);
         return ResponseEntity.status(HttpStatus.OK).body(response);
-    }
-
-    private void sortProposals(List<RecoveryProposalFilterDto> proposals, String sort) {
-        switch (sort.toLowerCase()) {
-            case "recent":
-                proposals.sort(Comparator.comparing(RecoveryProposalFilterDto::getCreatedAt).reversed());
-                break;
-            case "oldest":
-                proposals.sort(Comparator.comparing(RecoveryProposalFilterDto::getCreatedAt));
-                break;
-            case "most_votes":
-                proposals.sort(Comparator.comparing(RecoveryProposalFilterDto::getVotes).reversed());
-                break;
-            case "least_votes":
-                proposals.sort(Comparator.comparing(RecoveryProposalFilterDto::getVotes));
-                break;
-            default:
-                proposals.sort(Comparator.comparing(RecoveryProposalFilterDto::getCreatedAt).reversed());
-                break;
-        }
     }
 
     private CycleEntity getCurrentCycleOrThrow(){
