@@ -11,6 +11,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.time.OffsetDateTime;
@@ -74,6 +75,12 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
                     .build();
 
             status = HttpStatus.BAD_REQUEST;
+        }else if (e instanceof MaxUploadSizeExceededException) {
+            body = Problem.builder()
+                    .dataHora(OffsetDateTime.now())
+                    .mensagem("O arquivo enviado é muito grande. O tamanho máximo permitido é de 1MB.")
+                    .build();
+            status = HttpStatus.PAYLOAD_TOO_LARGE;
         } else {
             // Tratamento para outras exceções
             if (body == null) {
