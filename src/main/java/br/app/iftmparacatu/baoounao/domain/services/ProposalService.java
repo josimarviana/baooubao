@@ -101,7 +101,16 @@ public class ProposalService {
 
         CategoryEntity categoryEntity = categoryRepository.findByTitleAndActiveTrue(category).orElseThrow(() -> new EntityNotFoundException(String.format("Categoria de nome %s não encontrada!", category)));
         try{
-            String imageUrl = uploadImageToS3(image);
+            String imageUrl = Optional.ofNullable(image)
+                    .filter(img -> !img.isEmpty())
+                    .map(img -> {
+                        try {
+                            return uploadImageToS3(img);
+                        } catch (IOException e) {
+                            throw new RuntimeException("Erro ao fazer upload da imagem", e);
+                        }
+                    })
+                    .orElse(null);
             ProposalEntity proposalEntity = ProposalEntity.builder()
                     .description(description)
                     .title(tittle)
