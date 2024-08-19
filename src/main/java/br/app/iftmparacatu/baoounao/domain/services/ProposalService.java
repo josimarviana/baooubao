@@ -261,25 +261,51 @@ public class ProposalService {
         CycleEntity currentCycle = getCurrentCycleOrThrow();
         Situation situation = Situation.OPEN_FOR_VOTING;
         Pageable pageable = PageRequest.of(page, size);
-        Page<ProposalEntity> proposalEntityList = proposalRepository.findByCycleEntityAndTitleContainingAndSituationOrCycleEntityAndDescriptionContainingAndSituation(currentCycle,text,situation,currentCycle,text,situation,pageable);
+        List<ProposalEntity> proposalEntityList = proposalRepository.findByCycleEntityAndTitleContainingAndSituationOrCycleEntityAndDescriptionContainingAndSituation(currentCycle,text,situation,currentCycle,text,situation);
 
 
         List <RecoveryProposalFilterDto> recoveryProposalDtoList = proposalEntityList.stream()
                 .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal)))
                 .collect(Collectors.toList());
 
+        // Ordena a lista completa com base no critério fornecido
+        sortProposals(recoveryProposalDtoList, sort);
+        int countReg = recoveryProposalDtoList.size();
+        int start = Math.min(page * size, countReg);
+        int end = Math.min((page + 1) * size, countReg);
+        List<RecoveryProposalFilterDto> paginatedList = recoveryProposalDtoList.subList(start, end);
+
         PaginatedProposalsResponse response = PaginatedProposalsResponse.builder()
-                .proposals(recoveryProposalDtoList)
-                .totalElements(proposalEntityList.getTotalElements())
-                .totalPages(proposalEntityList.getTotalPages())
-                .currentPage(proposalEntityList.getNumber())
+                .proposals(paginatedList)
+                .totalElements(countReg)
+                .totalPages((int) Math.ceil((double) countReg / size))
+                .currentPage(page)
                 .build();
-        response.sortProposals(sort);
+        //response.sortProposals(sort);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     private CycleEntity getCurrentCycleOrThrow(){
         return cycleService.findProgressCycle().orElseThrow(() -> new EntityNotFoundException(String.format("Não foram localizados ciclos em andamento")));
+    }
+
+    private void sortProposals(List<RecoveryProposalFilterDto> proposals, String sort) {
+        switch (sort.toLowerCase()) {
+            case "recent":
+                proposals.sort(Comparator.comparing(RecoveryProposalFilterDto::getCreatedAt).reversed());
+                break;
+            case "oldest":
+                proposals.sort(Comparator.comparing(RecoveryProposalFilterDto::getCreatedAt));
+                break;
+            case "most_votes":
+                proposals.sort(Comparator.comparing(RecoveryProposalFilterDto::getVotes).reversed());
+                break;
+            case "least_votes":
+                proposals.sort(Comparator.comparing(RecoveryProposalFilterDto::getVotes));
+                break;
+            default:
+                break;
+        }
     }
 
     private CycleEntity getCurrentCycleOrThrow(String message){
