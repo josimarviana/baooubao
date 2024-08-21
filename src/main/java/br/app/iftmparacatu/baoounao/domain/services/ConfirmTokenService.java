@@ -31,7 +31,7 @@ public class ConfirmTokenService {
        ConfirmationTokenEntity token = ConfirmationTokenEntity.builder()
                .token(UUID.randomUUID().toString())
                .createdDate(LocalDateTime.now())
-               .expiryDate(LocalDateTime.now().plusHours(24))
+               .expiryDate(LocalDateTime.now().plusMinutes(10))
                .user(user)
                .build();
         confirmationTokenRepository.save(token);
@@ -40,6 +40,9 @@ public class ConfirmTokenService {
         return urlConfirmationEmail;
     }
     public Optional<ConfirmationTokenEntity> validation(String token) {
+        System.out.println(LocalDateTime.now());
+        System.out.println(findByToken(token).get().getExpiryDate());
+        System.out.println(findByToken(token).get().getExpiryDate().isAfter(LocalDateTime.now()));
         return Optional.ofNullable(confirmationTokenRepository.findByToken(token))
                 .filter(t -> t.getExpiryDate().isAfter(LocalDateTime.now()));
     }
