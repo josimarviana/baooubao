@@ -31,7 +31,7 @@ public class ConfirmTokenService {
        ConfirmationTokenEntity token = ConfirmationTokenEntity.builder()
                .token(UUID.randomUUID().toString())
                .createdDate(LocalDateTime.now())
-               .expiryDate(LocalDateTime.now().plusMinutes(10))
+               .expiryDate(LocalDateTime.now().plusHours(24))
                .user(user)
                .build();
         confirmationTokenRepository.save(token);
