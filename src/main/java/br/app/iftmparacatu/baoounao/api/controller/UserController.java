@@ -72,6 +72,11 @@ public class UserController {
         return userService.validateUser(token);
     }
 
+    @PatchMapping("/{userID}")
+    public void updateUser(@PathVariable Long userID, @RequestBody UserEntity user) {
+        return userService.updateUser();
+
+    }
 
 }
 
