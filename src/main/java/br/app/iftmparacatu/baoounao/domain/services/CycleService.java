@@ -143,6 +143,8 @@ public class CycleService {
                 .ifPresent(existingCycle::setStartDate);
         Optional.ofNullable(updatedCycleDto.finishDate())
                 .ifPresent(existingCycle::setFinishDate);
+        Optional.of(updatedCycleDto.active())
+                .ifPresent(existingCycle::setActive);
         cycleRepository.save(existingCycle);
         return ResponseUtil.createSuccessResponse("Ciclo atualizada com sucesso !!",HttpStatus.OK);
     }
