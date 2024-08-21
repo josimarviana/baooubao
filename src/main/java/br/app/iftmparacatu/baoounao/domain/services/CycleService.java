@@ -75,7 +75,7 @@ public class CycleService {
             overlappingCycleList = findOverlappingCycle(effectiveStartDate, effectiveFinishDate);
         }
 
-         //TODO: pode ser que sobreponha mais de um ciclo, talvez seja necessário ajustar e alterar a mensagem de erro
+
         Optional<CycleEntity> checkCycle = cycleRepository.findByTitleAndActiveTrue(createCycleDto.title());
 
         if (checkCycle.isPresent() && cycleID != checkCycle.get().getId()){
@@ -94,7 +94,9 @@ public class CycleService {
                     cycleTitles));
         }
 
-        if (createCycleDto.startDate().isAfter(createCycleDto.finishDate())) {
+        if (Optional.ofNullable(createCycleDto.startDate()).isPresent() &&
+            Optional.ofNullable(createCycleDto.finishDate()).isPresent() &&
+                createCycleDto.startDate().isAfter(createCycleDto.finishDate())) {
             throw new NotAllowedOperation(String.format(
                     "%s do ciclo não permitido: a data de início (%s) é posterior à data de término (%s).",
                     operation,
