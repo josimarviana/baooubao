@@ -40,9 +40,9 @@ public class ConfirmTokenService {
         return urlConfirmationEmail;
     }
     public Optional<ConfirmationTokenEntity> validation(String token) {
-        System.out.println(LocalDateTime.now());
-        System.out.println(findByToken(token).get().getExpiryDate());
-        System.out.println(findByToken(token).get().getExpiryDate().isAfter(LocalDateTime.now()));
+        System.out.printf("Data Atual: %s",LocalDateTime.now());
+        System.out.printf("Data Expiração Token: %s",findByToken(token).get().getExpiryDate());
+        System.out.println("Resultado condição: "+findByToken(token).get().getExpiryDate().isAfter(LocalDateTime.now()));
         return Optional.ofNullable(confirmationTokenRepository.findByToken(token))
                 .filter(t -> t.getExpiryDate().isAfter(LocalDateTime.now()));
     }
