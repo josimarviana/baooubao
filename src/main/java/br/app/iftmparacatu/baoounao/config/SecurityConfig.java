@@ -4,7 +4,6 @@ import br.app.iftmparacatu.baoounao.domain.security.SecurityFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -37,7 +36,8 @@ public class SecurityConfig {
             "/cycle",
             "/category",
             "/proposal/moderate/**",
-            "/user/filter"
+            "/user/filter",
+            "/proposal/adm"
     };
 
     @Autowired
@@ -48,7 +48,6 @@ public class SecurityConfig {
         return httpSecurity
                 .csrf(csrf -> csrf.disable()) //desativa protecao contra CSRF
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.GET, "/proposal").hasRole("ADMINISTRATOR")
                         .requestMatchers(ENDPOINTS_WITH_AUTHENTICATION_NOT_REQUIRED).permitAll()
                         .requestMatchers(ENDPOINTS_WITH_AUTHENTICATION_REQUIRED).authenticated()
                         .requestMatchers(ENDPOINTS_ADMIN).hasRole("ADMINISTRATOR")

@@ -24,7 +24,7 @@ public class ProposalController {
     @Autowired
     ProposalService proposalService;
 
-    @GetMapping
+    @GetMapping("/adm")
     public ResponseEntity<List<RecoveryBasicProposalDto>> list (){
         List<RecoveryBasicProposalDto> propostas =  proposalService.findAll();
         return ResponseEntity.status(HttpStatus.OK).body(propostas);
