@@ -70,12 +70,12 @@ public class UserService {
     public RecoveryJwtTokenDto authenticateUser(LoginUserDto loginUserDto) {
         // Cria um objeto de autenticação com o email e a senha do usuári
         // Autentica o usuário com as credenciais fornecidas
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginUserDto.email(),loginUserDto.password()));
+        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginUserDto.email(), loginUserDto.password()));
 
         // Obtém o objeto UserDetails do usuário autenticado
         UserEntity userDetails = (UserEntity) authentication.getPrincipal();
 
-        if(!userDetails.isActive()){
+        if (!userDetails.isActive()) {
             throw new InactiveUserException("Não foi possível realizar o login, pois este usuário está inativo");
         }
 
@@ -87,19 +87,19 @@ public class UserService {
 
         if (isValidDomainAndType(createUserDto)) {
             UserEntity newUser = UserEntity.builder()
-                .email(createUserDto.email())
-                .name(createUserDto.name())
-                .type(createUserDto.type())
-                .password(securityConfiguration.passwordEncoder().encode(createUserDto.password()))
-                .roles(List.of(roleRepository.findByName(RoleName.ROLE_USER)))
-                .build();
-                   userRepository.save(newUser);
-                try {
-                    emailService.enviarEmailDeConfirmacao(createUserDto.email(), createUserDto.name(),confirmationTokenService.salvar(newUser));
-                } catch (MessagingException e) {
-                    throw  new EmailSendingException("Erro ao enviar e-mail de confirmação");
-                }
-        }else  throw new InvalidDomainException("Domínio não é válido");
+                    .email(createUserDto.email())
+                    .name(createUserDto.name())
+                    .type(createUserDto.type())
+                    .password(securityConfiguration.passwordEncoder().encode(createUserDto.password()))
+                    .roles(List.of(roleRepository.findByName(RoleName.ROLE_USER)))
+                    .build();
+            userRepository.save(newUser);
+            try {
+                emailService.enviarEmailDeConfirmacao(createUserDto.email(), createUserDto.name(), confirmationTokenService.salvar(newUser));
+            } catch (MessagingException e) {
+                throw new EmailSendingException("Erro ao enviar e-mail de confirmação");
+            }
+        } else throw new InvalidDomainException("Domínio não é válido");
 
     }
 
@@ -118,6 +118,7 @@ public class UserService {
                     return ResponseEntity.badRequest().body("Token inválido ou expirado");
                 });
     }
+
     private boolean isValidDomainAndType(CreateUserDto createUserDto) {
         String email = createUserDto.email();
         String domain = email.substring(email.lastIndexOf("@") + 1);
@@ -130,7 +131,7 @@ public class UserService {
         return domainToUserTypes.getOrDefault(domain, List.of()).contains(userType);
     }
 
-    private RecoveryUserDto mapToDto(UserEntity userEntity){
+    private RecoveryUserDto mapToDto(UserEntity userEntity) {
         RecoveryUserDto recoveryUserDto = RecoveryUserDto.builder()
                 .id(userEntity.getId())
                 .name(userEntity.getName())
@@ -147,11 +148,11 @@ public class UserService {
         return recoveryUserDto;
     }
 
-    public ResponseEntity<PaginatedUsersResponse> findAll(String text, int page, int size, String sort){
+    public ResponseEntity<PaginatedUsersResponse> findAll(String text, int page, int size, String sort) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<UserEntity> userEntityPageable =  userRepository.findByNameContainingOrEmailContaining(text,text,pageable);
+        Page<UserEntity> userEntityPageable = userRepository.findByNameContainingOrEmailContaining(text, text, pageable);
 
-        List <RecoveryUserDto> recoveryUsersDtoList = userEntityPageable.stream()
+        List<RecoveryUserDto> recoveryUsersDtoList = userEntityPageable.stream()
                 .map(user -> mapToDto(user))
                 .collect(Collectors.toList());
 
@@ -166,5 +167,27 @@ public class UserService {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    public ResponseEntity<Object> updateUser(Long userId, CreateUserDto updateUserDto) {
+        UserEntity existingUser = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException(String.format("Usuário com id %d não encontrado!", userId)));
 
+        Optional.ofNullable(updateUserDto.name())
+                .ifPresent(existingUser::setName);
+        Optional.ofNullable(updateUserDto.email())
+                .ifPresent(existingUser::setEmail);
+        Optional.ofNullable(updateUserDto.password())
+                .ifPresent(password -> existingUser.setPassword(securityConfiguration.passwordEncoder().encode(password)));
+        Optional.ofNullable(updateUserDto.type())
+                .ifPresent(existingUser::setType);
+
+//        Optional.ofNullable(updateUserDto.roles()).ifPresent(roles -> {
+//            List<RoleEntity> roleEntities = roles.stream()
+//                    .map(roleRepository::findByName)
+//                    .collect(Collectors.toList());
+//            existingUser.setRoles(roleEntities);
+//        });
+
+        userRepository.save(existingUser);
+        return ResponseEntity.ok("Usuário atualizado com sucesso!");
+    }
 }

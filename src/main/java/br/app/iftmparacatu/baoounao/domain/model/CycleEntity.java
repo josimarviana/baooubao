@@ -38,5 +38,9 @@ public class CycleEntity {
             active = true;
         }
     }
+    @Override
+    public String toString() {
+        return title;
+    }
 
 }

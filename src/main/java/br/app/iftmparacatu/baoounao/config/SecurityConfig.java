@@ -28,14 +28,16 @@ public class SecurityConfig {
 
     };
     public static final String [] ENDPOINTS_WITH_AUTHENTICATION_REQUIRED = {
-            "/proposal/moderate"
+            "/user/test/customer"
     };
     public static final String [] ENDPOINTS_CUSTOMER = {
             "/user/test/customer"
     };
     public static final String [] ENDPOINTS_ADMIN = {
             "/cycle",
-            "/category"
+            "/category",
+            "/proposal/moderate/**",
+            "/user/filter"
     };
 
     @Autowired
@@ -46,7 +48,7 @@ public class SecurityConfig {
         return httpSecurity
                 .csrf(csrf -> csrf.disable()) //desativa protecao contra CSRF
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.GET, "/user").hasRole("ADMINISTRATOR")
+                        .requestMatchers(HttpMethod.GET, "/proposal").hasRole("ADMINISTRATOR")
                         .requestMatchers(ENDPOINTS_WITH_AUTHENTICATION_NOT_REQUIRED).permitAll()
                         .requestMatchers(ENDPOINTS_WITH_AUTHENTICATION_REQUIRED).authenticated()
                         .requestMatchers(ENDPOINTS_ADMIN).hasRole("ADMINISTRATOR")
