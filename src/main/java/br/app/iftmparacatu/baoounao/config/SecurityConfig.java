@@ -37,8 +37,7 @@ public class SecurityConfig {
             "/cycle",
             "/category",
             "/proposal/moderate/**",
-            "/user/filter",
-            "/proposal"
+            "/user/filter"
     };
 
     @Autowired
