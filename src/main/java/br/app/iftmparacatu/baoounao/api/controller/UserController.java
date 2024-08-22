@@ -56,12 +56,12 @@ public class UserController {
     public ResponseEntity<Object> validationUser(@PathVariable String token) {
         return userService.validateUser(token);
     }
-
-    @PatchMapping("/{userID}")
-    public void updateUser(@PathVariable Long userID, @RequestBody UserEntity user) {
-        return userService.updateUser();
-
-    }
+//
+//    @PatchMapping("/{userID}")
+//    public void updateUser(@PathVariable Long userID, @RequestBody UserEntity user) {
+//        return userService.updateUser();
+//
+//    }
 
 }
 
