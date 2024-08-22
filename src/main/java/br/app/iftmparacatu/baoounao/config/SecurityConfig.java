@@ -48,6 +48,7 @@ public class SecurityConfig {
         return httpSecurity
                 .csrf(csrf -> csrf.disable()) //desativa protecao contra CSRF
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.GET, "/proposal").hasRole("ADMINISTRATOR")
                         .requestMatchers(ENDPOINTS_WITH_AUTHENTICATION_NOT_REQUIRED).permitAll()
                         .requestMatchers(ENDPOINTS_WITH_AUTHENTICATION_REQUIRED).authenticated()
                         .requestMatchers(ENDPOINTS_ADMIN).hasRole("ADMINISTRATOR")
