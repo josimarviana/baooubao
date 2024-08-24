@@ -16,6 +16,7 @@ import br.app.iftmparacatu.baoounao.domain.model.UserEntity;
 import br.app.iftmparacatu.baoounao.domain.repository.RoleRepository;
 import br.app.iftmparacatu.baoounao.domain.repository.UserRepository;
 import jakarta.mail.MessagingException;
+import jakarta.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -89,7 +90,7 @@ public class UserService {
             throw new InvalidLoginException("Email ou senha incorretos");
 
         } catch (UsernameNotFoundException e) {
-            throw new InvalidLoginException("Email não encontrado");
+            throw new EntityNotFoundException("Email não encontrado");
 
         } catch (Exception e) {
             throw new InvalidLoginException("Erro ao tentar realizar o login");
