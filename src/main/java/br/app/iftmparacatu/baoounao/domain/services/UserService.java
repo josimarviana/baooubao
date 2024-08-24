@@ -8,6 +8,7 @@ import br.app.iftmparacatu.baoounao.api.exception.InvalidLoginException;
 import br.app.iftmparacatu.baoounao.config.SecurityConfig;
 import br.app.iftmparacatu.baoounao.domain.dtos.input.CreateUserDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.input.LoginUserDto;
+import br.app.iftmparacatu.baoounao.domain.dtos.input.UpdateUserDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.*;
 import br.app.iftmparacatu.baoounao.domain.enums.RoleName;
 import br.app.iftmparacatu.baoounao.domain.enums.UserType;
@@ -36,9 +37,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigInteger;
 import java.net.URI;
 import java.security.SecureRandom;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -181,9 +180,9 @@ public class UserService {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    public ResponseEntity<Object> updateUser(Long userId, CreateUserDto updateUserDto) {
+    public ResponseEntity<Object> updateUser(Long userId, UpdateUserDto updateUserDto) {
         UserEntity existingUser = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException(String.format("Usuário com id %d não encontrado!", userId)));
+                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado!"));
 
         Optional.ofNullable(updateUserDto.name())
                 .ifPresent(existingUser::setName);
@@ -193,14 +192,17 @@ public class UserService {
                 .ifPresent(password -> existingUser.setPassword(securityConfiguration.passwordEncoder().encode(password)));
         Optional.ofNullable(updateUserDto.type())
                 .ifPresent(existingUser::setType);
+        try {
 
-//        Optional.ofNullable(updateUserDto.roles()).ifPresent(roles -> {
-//            List<RoleEntity> roleEntities = roles.stream()
-//                    .map(roleRepository::findByName)
-//                    .collect(Collectors.toList());
-//            existingUser.setRoles(roleEntities);
-//        });
-
+            Optional.ofNullable(updateUserDto.roles()).ifPresent(roles -> {
+                List<RoleEntity> roleEntities = roles.stream()
+                        .map(roleName -> roleRepository.findByName(roleName.getName()))
+                        .collect(Collectors.toList());
+                existingUser.setRoles(roleEntities);
+            });
+        }catch (EntityNotFoundException e) {
+            throw new EntityNotFoundException("Role não encontrada");
+        }
         userRepository.save(existingUser);
         return ResponseEntity.ok("Usuário atualizado com sucesso!");
     }
