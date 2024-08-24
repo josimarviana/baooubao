@@ -2,6 +2,7 @@ package br.app.iftmparacatu.baoounao.api.exceptionhandler;
 
 import br.app.iftmparacatu.baoounao.api.exception.*;
 import br.app.iftmparacatu.baoounao.api.response.Problem;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -20,6 +21,8 @@ import java.util.Map;
 
 @ControllerAdvice
 public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
+    @Value("${spring.servlet.multipart.max-file-size}")
+    private String MAX_FILE_SIZE;
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<?> handleEntityNotFoundException(EntityNotFoundException e, WebRequest request){
         return handleExceptionInternal(e, e.getMessage(), new HttpHeaders(), HttpStatus.NOT_FOUND,request);
@@ -78,7 +81,7 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         }else if (e instanceof MaxUploadSizeExceededException) {
             body = Problem.builder()
                     .dataHora(OffsetDateTime.now())
-                    .mensagem("O arquivo enviado é muito grande. O tamanho máximo permitido é de 1MB.")
+                    .mensagem(String.format("O arquivo enviado é muito grande. O tamanho máximo permitido é de %s ",MAX_FILE_SIZE))
                     .build();
             status = HttpStatus.PAYLOAD_TOO_LARGE;
         } else {

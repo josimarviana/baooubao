@@ -36,13 +36,9 @@ public class ConfirmTokenService {
                .build();
         confirmationTokenRepository.save(token);
        String urlSalvar = urlConfirmationEmail.replace("{token}", token.getToken());
-        System.out.println("Data de expiração do token: " + token.getExpiryDate());
         return urlSalvar;
     }
     public Optional<ConfirmationTokenEntity> validation(String token) {
-        System.out.printf("Data Atual: %s",LocalDateTime.now());
-        System.out.printf("Data Expiração Token: %s",findByToken(token).get().getExpiryDate());
-        System.out.println("Resultado condição: "+findByToken(token).get().getExpiryDate().isAfter(LocalDateTime.now()));
         return Optional.ofNullable(confirmationTokenRepository.findByToken(token))
                 .filter(t -> t.getExpiryDate().isAfter(LocalDateTime.now()));
     }

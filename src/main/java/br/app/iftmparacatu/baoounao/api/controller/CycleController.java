@@ -17,7 +17,7 @@ public class CycleController {
     public ResponseEntity<Object> list(){
         return cycleService.findAll();
     }
-    @GetMapping("/{cycleID}") //TODO: Adicionar exception para quando não encontrar a entidade
+    @GetMapping("/{cycleID}")
     public ResponseEntity<Object> findById(@PathVariable Long cycleID) {
         return cycleService.findById(cycleID);
     }
