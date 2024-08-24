@@ -4,6 +4,7 @@ package br.app.iftmparacatu.baoounao.domain.services;
 import br.app.iftmparacatu.baoounao.api.exception.EmailSendingException;
 import br.app.iftmparacatu.baoounao.api.exception.InactiveUserException;
 import br.app.iftmparacatu.baoounao.api.exception.InvalidDomainException;
+import br.app.iftmparacatu.baoounao.api.exception.InvalidLoginException;
 import br.app.iftmparacatu.baoounao.config.SecurityConfig;
 import br.app.iftmparacatu.baoounao.domain.dtos.input.CreateUserDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.input.LoginUserDto;
@@ -24,9 +25,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
@@ -68,19 +71,29 @@ public class UserService {
 
     // Método responsável por autenticar um usuário e retornar um token JWT
     public RecoveryJwtTokenDto authenticateUser(LoginUserDto loginUserDto) {
-        // Cria um objeto de autenticação com o email e a senha do usuári
+        // Cria um objeto de autenticação com o email e a senha do usuário
         // Autentica o usuário com as credenciais fornecidas
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginUserDto.email(), loginUserDto.password()));
+        try {
+            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginUserDto.email(), loginUserDto.password()));
 
-        // Obtém o objeto UserDetails do usuário autenticado
-        UserEntity userDetails = (UserEntity) authentication.getPrincipal();
+            // Obtém o objeto UserDetails do usuário autenticado
+            UserEntity userDetails = (UserEntity) authentication.getPrincipal();
 
-        if (!userDetails.isActive()) {
-            throw new InactiveUserException("Não foi possível realizar o login, pois este usuário está inativo");
+            if (!userDetails.isActive()) {
+                throw new InactiveUserException("Não foi possível realizar o login, pois este usuário está inativo");
+            }
+            // Gera um token JWT para o usuário autenticado
+            return new RecoveryJwtTokenDto(jwtTokenService.generateToken(userDetails));
+
+        } catch (BadCredentialsException e) {
+            throw new InvalidLoginException("Email ou senha incorretos");
+
+        } catch (UsernameNotFoundException e) {
+            throw new InvalidLoginException("Email não encontrado");
+
+        } catch (Exception e) {
+            throw new InvalidLoginException("Erro ao tentar realizar o login");
         }
-
-        // Gera um token JWT para o usuário autenticado
-        return new RecoveryJwtTokenDto(jwtTokenService.generateToken(userDetails));
     }
 
     public void createUser(CreateUserDto createUserDto) {
