@@ -70,17 +70,17 @@ public class ProposalController {
         return proposalService.update(proposalID,tittle, description, url, image, category);
     }
 
-    @PatchMapping("/moderate/approve/{proposalID}")
+    @PatchMapping("/adm/moderate/approve/{proposalID}")
     public ResponseEntity<Object> approveProposal(@PathVariable Long proposalID){
         return proposalService.moderate(proposalID, Situation.OPEN_FOR_VOTING);
     }
 
-    @PatchMapping("/moderate/deny/{proposalID}")
+    @PatchMapping("/adm/moderate/deny/{proposalID}")
     public ResponseEntity<Object> denyProposal(@PathVariable Long proposalID){
         return proposalService.moderate(proposalID,Situation.DENIED);
     }
 
-    @PatchMapping("/moderate/board/{proposalID}")
+    @PatchMapping("/adm/moderate/board/{proposalID}")
     public ResponseEntity<Object> fowardedToBoard(@PathVariable Long proposalID){
         return proposalService.moderate(proposalID,Situation.FORWARDED_TO_BOARD);
     }
