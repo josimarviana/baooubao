@@ -323,10 +323,10 @@ public class ProposalService {
 
     public ResponseEntity<Object> dashboardCount(){
         CycleEntity currentCycle = getCurrentCycleOrThrow();
-        Long openProposals = proposalRepository.countBySituationAndCycleEntity(Situation.PENDING_MODERATION,currentCycle);
+        Long openProposals = proposalRepository.countBySituationAndCycleEntityAndActiveTrue(Situation.PENDING_MODERATION,currentCycle);
         Long totalVotes = votingService.countByCycleEntity(currentCycle);
-        Long deniedProposals = proposalRepository.countBySituationAndCycleEntity(Situation.DENIED,currentCycle);
-        Long acceptedProposals = proposalRepository.countBySituationAndCycleEntity(Situation.OPEN_FOR_VOTING,currentCycle);
+        Long deniedProposals = proposalRepository.countBySituationAndCycleEntityAndActiveTrue(Situation.DENIED,currentCycle);
+        Long acceptedProposals = proposalRepository.countBySituationAndCycleEntityAndActiveTrue(Situation.OPEN_FOR_VOTING,currentCycle);
 
         RecoveryDashboardInformationtDto recoveryDashboardInformationtDto = RecoveryDashboardInformationtDto.builder()
                 .openProposals(openProposals)
@@ -338,7 +338,7 @@ public class ProposalService {
     }
 
     public boolean cycleHasProposals(CycleEntity cycleEntity){ //TODO: notificar quando houver propostas anexadas aquele ciclo quando o front tentar desativar um ciclo
-        return !proposalRepository.findByCycleEntity(cycleEntity).isEmpty();
+        return !proposalRepository.findByCycleEntityAndActiveTrue(cycleEntity).isEmpty();
     }
 
     public boolean categoryHasProposals(CategoryEntity categoryEntity){
