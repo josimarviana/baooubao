@@ -1,0 +1,1 @@
+create table notification_entity (entregue bit, id bigint not null auto_increment, user_entity_id bigint, message varchar(255), status enum ('OPEN_FOR_VOTING','FORWARDED_TO_BOARD','DENIED','PENDING_MODERATION'), primary key (id)) engine=InnoDB;
