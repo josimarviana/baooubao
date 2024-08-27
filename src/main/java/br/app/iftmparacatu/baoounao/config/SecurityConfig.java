@@ -23,7 +23,8 @@ public class SecurityConfig {
             "/user",
             "/user/token/**",
             "/user/email",
-            "/proposal/trending"
+            "/proposal/trending",
+            "/ws/**"
 
     };
     public static final String [] ENDPOINTS_WITH_AUTHENTICATION_REQUIRED = {

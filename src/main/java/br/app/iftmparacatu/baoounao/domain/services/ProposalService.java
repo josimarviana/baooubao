@@ -56,6 +56,9 @@ public class ProposalService {
     @Autowired
     private AmazonS3 amazonS3Client;
 
+    @Autowired
+    private NotificationService notificationService;
+
     public <T>  T mapToDto(ProposalEntity proposalEntity , Class<T> dtoClass) {
         T dto = modelMapper.map(proposalEntity, dtoClass);
         return dto;
@@ -120,6 +123,7 @@ public class ProposalService {
                     .categoryEntity(categoryEntity)
                     .build();
             proposalRepository.save(proposalEntity);
+            notificationService.save("Proposta registrada com sucesso",Situation.PENDING_MODERATION);
 
             return ResponseUtil.createSuccessResponse("Proposta salva com sucesso !!",HttpStatus.CREATED);
         }catch (Exception e){
