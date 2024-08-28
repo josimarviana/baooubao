@@ -12,6 +12,7 @@ import br.app.iftmparacatu.baoounao.domain.dtos.input.UpdateUserDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.*;
 import br.app.iftmparacatu.baoounao.domain.enums.RoleName;
 import br.app.iftmparacatu.baoounao.domain.enums.UserType;
+import br.app.iftmparacatu.baoounao.domain.model.ConfirmationTokenEntity;
 import br.app.iftmparacatu.baoounao.domain.model.RoleEntity;
 import br.app.iftmparacatu.baoounao.domain.model.UserEntity;
 import br.app.iftmparacatu.baoounao.domain.repository.RoleRepository;
@@ -31,6 +32,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -46,6 +48,11 @@ public class UserService {
     private String urlAuthenticated;
     @Value("${url.email.redirect.expired}")
     private String urlExpired;
+
+    @Value("${url.email}")
+    private String urlConfirmationEmail;
+    @Value("${url.email}")
+    private String urlConfirmationTrocarSenha;
 
 
     @Autowired
@@ -111,7 +118,7 @@ public class UserService {
                     .build();
             userRepository.save(newUser);
             try {
-                emailService.enviarEmailDeConfirmacao(createUserDto.email(), createUserDto.name(), confirmationTokenService.salvar(newUser));
+                emailService.enviarEmailDeConfirmacao(createUserDto.email(), createUserDto.name(), confirmationTokenService.salvar(newUser,urlConfirmationEmail));
             } catch (MessagingException e) {
                 throw new EmailSendingException("Erro ao enviar e-mail de confirmação");
             }
@@ -211,4 +218,26 @@ public class UserService {
         userRepository.save(existingUser);
         return ResponseEntity.ok("Usuário atualizado com sucesso!");
     }
+
+    public void validateEmail(String email) {
+        UserDetails user =userRepository.findByEmail(email);
+      if (user.isEnabled()) {
+          try {
+              emailService.enviarEmailTrocaDeSenha(((UserEntity) user).getEmail(), user.getUsername(), confirmationTokenService.salvar((UserEntity) user, urlConfirmationTrocarSenha));
+          } catch (MessagingException e) {
+              throw new EmailSendingException("Erro ao enviar e-mail de troca de senha");
+          }
+      }
+    }
+
+    public ResponseEntity<Object> trocarSenha(String token, String senha, String confirmacaoSenha) {
+        Optional<ConfirmationTokenEntity> teste = confirmationTokenService.validation(token);
+        if (senha.equals(confirmacaoSenha)) {
+            teste.get().getUser().setPassword(securityConfiguration.passwordEncoder().encode(senha));
+            return ResponseEntity.ok("As senhas foram trocadas");
+        }else throw new RuntimeException("senha nao batem!");
+    }
+
+
+
 }
