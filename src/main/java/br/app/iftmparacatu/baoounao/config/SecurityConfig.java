@@ -22,7 +22,7 @@ public class SecurityConfig {
             "/user/login",
             "/user",
             "/user/token/**",
-            "/user/email",
+            "/user/pages/messages/**",
             "/proposal/trending"
 
     };
