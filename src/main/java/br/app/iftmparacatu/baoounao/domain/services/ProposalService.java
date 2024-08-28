@@ -216,6 +216,8 @@ public class ProposalService {
                 .ifPresent(existingProposal::setImage);
         Optional.ofNullable(updateProposalDto.categoryEntity())
                 .ifPresent(existingProposal::setCategoryEntity);
+        Optional.ofNullable(updateProposalDto.url())
+                .ifPresent(existingProposal::setVideoUrl);
         existingProposal.setSituation(Situation.PENDING_MODERATION);
         proposalRepository.save(existingProposal);
 
