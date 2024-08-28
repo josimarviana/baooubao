@@ -42,8 +42,11 @@ import java.util.stream.Collectors;
 
 @Service
 public class UserService {
-    @Value("${url.email.redirect}")
-    private String url_redirect;
+    @Value("${url.email.redirect.authenticated}")
+    private String urlAuthenticated;
+    @Value("${url.email.redirect.expired}")
+    private String urlExpired;
+
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -123,12 +126,14 @@ public class UserService {
                     user.setActive(true);
                     userRepository.save(user);
                     confirmationTokenService.delete(t);
-                    URI redirectUri = URI.create(url_redirect);
+                    URI redirectUri = URI.create(urlAuthenticated);
                     return ResponseEntity.status(HttpStatus.FOUND).location(redirectUri).build();
                 }).orElseGet(() -> {
                     confirmationTokenService.findByToken(token)
                             .ifPresent(confirmationTokenService::delete);
-                    return ResponseEntity.badRequest().body("Token inválido ou expirado");
+                    URI redirectUriExpired = URI.create(urlAuthenticated);
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).location(redirectUriExpired).build();
+
                 });
     }
 
