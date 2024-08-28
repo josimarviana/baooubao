@@ -337,7 +337,7 @@ public class ProposalService {
         return ResponseEntity.status(HttpStatus.OK).body(recoveryDashboardInformationtDto);
     }
 
-    public boolean cycleHasProposals(CycleEntity cycleEntity){ //TODO: notificar quando houver propostas anexadas aquele ciclo quando o front tentar desativar um ciclo
+    public boolean cycleHasProposals(CycleEntity cycleEntity){
         return !proposalRepository.findByCycleEntityAndActiveTrue(cycleEntity).isEmpty();
     }
 

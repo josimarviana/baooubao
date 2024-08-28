@@ -2,6 +2,7 @@ package br.app.iftmparacatu.baoounao.api.controller;
 
 import br.app.iftmparacatu.baoounao.domain.dtos.input.CreateUserDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.input.LoginUserDto;
+import br.app.iftmparacatu.baoounao.domain.dtos.input.UpdateUserDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.PaginatedUsersResponse;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryJwtTokenDto;
 import br.app.iftmparacatu.baoounao.domain.model.UserEntity;
@@ -56,12 +57,12 @@ public class UserController {
     public ResponseEntity<Object> validationUser(@PathVariable String token) {
         return userService.validateUser(token);
     }
-//
-//    @PatchMapping("/{userID}")
-//    public void updateUser(@PathVariable Long userID, @RequestBody UserEntity user) {
-//        return userService.updateUser();
-//
-//    }
+
+    @PatchMapping("/{userID}")
+    public ResponseEntity<Object> updateUser(@PathVariable Long userID, @RequestBody UpdateUserDto userDto) {
+        return userService.updateUser(userID,userDto);
+
+    }
 
 }
 

@@ -4,9 +4,11 @@ package br.app.iftmparacatu.baoounao.domain.services;
 import br.app.iftmparacatu.baoounao.api.exception.EmailSendingException;
 import br.app.iftmparacatu.baoounao.api.exception.InactiveUserException;
 import br.app.iftmparacatu.baoounao.api.exception.InvalidDomainException;
+import br.app.iftmparacatu.baoounao.api.exception.InvalidLoginException;
 import br.app.iftmparacatu.baoounao.config.SecurityConfig;
 import br.app.iftmparacatu.baoounao.domain.dtos.input.CreateUserDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.input.LoginUserDto;
+import br.app.iftmparacatu.baoounao.domain.dtos.input.UpdateUserDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.*;
 import br.app.iftmparacatu.baoounao.domain.enums.RoleName;
 import br.app.iftmparacatu.baoounao.domain.enums.UserType;
@@ -15,6 +17,7 @@ import br.app.iftmparacatu.baoounao.domain.model.UserEntity;
 import br.app.iftmparacatu.baoounao.domain.repository.RoleRepository;
 import br.app.iftmparacatu.baoounao.domain.repository.UserRepository;
 import jakarta.mail.MessagingException;
+import jakarta.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,17 +27,17 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
 import java.net.URI;
 import java.security.SecureRandom;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -68,19 +71,29 @@ public class UserService {
 
     // Método responsável por autenticar um usuário e retornar um token JWT
     public RecoveryJwtTokenDto authenticateUser(LoginUserDto loginUserDto) {
-        // Cria um objeto de autenticação com o email e a senha do usuári
+        // Cria um objeto de autenticação com o email e a senha do usuário
         // Autentica o usuário com as credenciais fornecidas
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginUserDto.email(), loginUserDto.password()));
+        try {
+            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginUserDto.email(), loginUserDto.password()));
 
-        // Obtém o objeto UserDetails do usuário autenticado
-        UserEntity userDetails = (UserEntity) authentication.getPrincipal();
+            // Obtém o objeto UserDetails do usuário autenticado
+            UserEntity userDetails = (UserEntity) authentication.getPrincipal();
 
-        if (!userDetails.isActive()) {
-            throw new InactiveUserException("Não foi possível realizar o login, pois este usuário está inativo");
+            if (!userDetails.isActive()) {
+                throw new InactiveUserException("Não foi possível realizar o login, pois este usuário está inativo");
+            }
+            // Gera um token JWT para o usuário autenticado
+            return new RecoveryJwtTokenDto(jwtTokenService.generateToken(userDetails));
+
+        } catch (BadCredentialsException e) {
+            throw new InvalidLoginException("Email ou senha incorretos");
+
+        } catch (UsernameNotFoundException e) {
+            throw new EntityNotFoundException("Email não encontrado");
+
+        } catch (Exception e) {
+            throw new InvalidLoginException("Erro ao tentar realizar o login");
         }
-
-        // Gera um token JWT para o usuário autenticado
-        return new RecoveryJwtTokenDto(jwtTokenService.generateToken(userDetails));
     }
 
     public void createUser(CreateUserDto createUserDto) {
@@ -167,9 +180,9 @@ public class UserService {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    public ResponseEntity<Object> updateUser(Long userId, CreateUserDto updateUserDto) {
+    public ResponseEntity<Object> updateUser(Long userId, UpdateUserDto updateUserDto) {
         UserEntity existingUser = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException(String.format("Usuário com id %d não encontrado!", userId)));
+                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado!"));
 
         Optional.ofNullable(updateUserDto.name())
                 .ifPresent(existingUser::setName);
@@ -179,14 +192,17 @@ public class UserService {
                 .ifPresent(password -> existingUser.setPassword(securityConfiguration.passwordEncoder().encode(password)));
         Optional.ofNullable(updateUserDto.type())
                 .ifPresent(existingUser::setType);
+        try {
 
-//        Optional.ofNullable(updateUserDto.roles()).ifPresent(roles -> {
-//            List<RoleEntity> roleEntities = roles.stream()
-//                    .map(roleRepository::findByName)
-//                    .collect(Collectors.toList());
-//            existingUser.setRoles(roleEntities);
-//        });
-
+            Optional.ofNullable(updateUserDto.roles()).ifPresent(roles -> {
+                List<RoleEntity> roleEntities = roles.stream()
+                        .map(roleName -> roleRepository.findByName(roleName.getName()))
+                        .collect(Collectors.toList());
+                existingUser.setRoles(roleEntities);
+            });
+        }catch (EntityNotFoundException e) {
+            throw new EntityNotFoundException("Role não encontrada");
+        }
         userRepository.save(existingUser);
         return ResponseEntity.ok("Usuário atualizado com sucesso!");
     }
