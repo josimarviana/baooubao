@@ -39,8 +39,8 @@ public class ProposalController {
     @PostMapping
     public ResponseEntity<Object> saveProposal (@RequestParam("title") String tittle,
                                                 @RequestParam("description") String description,
-                                                @RequestParam("url") String url,
-                                                @RequestParam("image") MultipartFile image,
+                                                @RequestParam(value = "url", required = false) String url,
+                                                @RequestParam(value = "image",required = false) MultipartFile image,
                                                 @RequestParam("category") String category) throws IOException{
         return proposalService.save(tittle, description, url, image, category);
     }
