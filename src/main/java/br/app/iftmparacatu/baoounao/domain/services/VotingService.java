@@ -77,12 +77,12 @@ public class VotingService {
         return ResponseEntity.status(HttpStatus.OK).body(recoveryLimitDto);
     }
 
-    public ResponseEntity<Object> findAllVotedUserProposals(){
+    public List<RecoveryProposalFilterDto> findAllVotedUserProposals(){
         List<VotingEntity> votingEntityList = votingRepository.findAllByUserEntity(SecurityUtil.getAuthenticatedUser());
         List <RecoveryProposalFilterDto> recoveryProposalDtoList = votingEntityList.stream()
                 .map(vote -> mapToDto(vote.getProposalEntity(),countByProposalEntity(vote.getProposalEntity())))
                 .collect(Collectors.toList());
-        return ResponseEntity.status(HttpStatus.OK).body(recoveryProposalDtoList);
+        return recoveryProposalDtoList;
     }
 
     public RecoveryProposalFilterDto mapToDto(ProposalEntity proposalEntity, int votes){

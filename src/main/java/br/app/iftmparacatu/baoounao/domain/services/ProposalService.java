@@ -288,16 +288,26 @@ public class ProposalService {
         Optional<ProposalEntity> proposal = Optional.ofNullable(proposalRepository.findById(proposalId).orElseThrow(() -> new EntityNotFoundException(String.format("Proposta de id %d não foi encontrada",proposalId))));
         return ResponseEntity.status(HttpStatus.OK).body(new RecoveryVoteProposalDto(votingService.hasVoted(SecurityUtil.getAuthenticatedUser(),proposal.get())));
     }
-    public ResponseEntity<PaginatedProposalsResponse> filterByDescriptionOrTitle(String text,int page, int size, String sort){
+    public ResponseEntity<PaginatedProposalsResponse> filterByDescriptionOrTitle(String text,int page, int size, String sort, String voted){
+        boolean showVoted = voted != null ? (voted.equalsIgnoreCase("show")) : false;
+        System.out.println(showVoted);
         CycleEntity currentCycle = getCurrentCycleOrThrow();
         Situation situation = Situation.OPEN_FOR_VOTING;
         Pageable pageable = PageRequest.of(page, size);
-        List<ProposalEntity> proposalEntityList = proposalRepository.findByCycleEntityAndTitleContainingAndSituationOrCycleEntityAndDescriptionContainingAndSituation(currentCycle,text,situation,currentCycle,text,situation);
+
+        List <RecoveryProposalFilterDto> recoveryProposalDtoList = new ArrayList<>();
+
+        if (showVoted){
+            recoveryProposalDtoList = votingService.findAllVotedUserProposals();
+
+        }else{
+            List<ProposalEntity> proposalEntityList = proposalRepository.findByCycleEntityAndTitleContainingAndSituationOrCycleEntityAndDescriptionContainingAndSituation(currentCycle,text,situation,currentCycle,text,situation);
 
 
-        List <RecoveryProposalFilterDto> recoveryProposalDtoList = proposalEntityList.stream()
-                .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal)))
-                .collect(Collectors.toList());
+            recoveryProposalDtoList = proposalEntityList.stream()
+                    .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal)))
+                    .collect(Collectors.toList());
+        }
 
         // Ordena a lista completa com base no critério fornecido
         sortProposals(recoveryProposalDtoList, sort);

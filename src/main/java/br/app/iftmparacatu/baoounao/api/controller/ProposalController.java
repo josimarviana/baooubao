@@ -45,8 +45,8 @@ public class ProposalController {
     }
 
     @GetMapping("/filter")
-    public ResponseEntity<PaginatedProposalsResponse> filterByDescriptionOrTitle (@RequestParam(value = "page", defaultValue = "0") int page, @RequestParam(value = "size", defaultValue = "9") int size, @RequestParam(value = "contain", required = false) String text, @RequestParam(value = "sort", defaultValue = "recent") String sort ){
-        return proposalService.filterByDescriptionOrTitle(text,page,size,sort);
+    public ResponseEntity<PaginatedProposalsResponse> filterByDescriptionOrTitle (@RequestParam(value = "page", defaultValue = "0") int page, @RequestParam(value = "size", defaultValue = "9") int size, @RequestParam(value = "contain", required = false) String text, @RequestParam(value = "sort", defaultValue = "recent") String sort,@RequestParam(value = "voted", required = false) String voted){
+        return proposalService.filterByDescriptionOrTitle(text,page,size,sort,voted);
     }
     @GetMapping("/trending")
     public ResponseEntity<Object> trendingProposals (){
