@@ -25,9 +25,8 @@ public class ProposalController {
     ProposalService proposalService;
 
     @GetMapping("/adm")
-    public ResponseEntity<List<RecoveryBasicProposalDto>> list (){
-        List<RecoveryBasicProposalDto> propostas =  proposalService.findAll();
-        return ResponseEntity.status(HttpStatus.OK).body(propostas);
+    public ResponseEntity<PaginatedProposalsResponse> listAllPendingModeration (@RequestParam(value = "page", defaultValue = "0") int page, @RequestParam(value = "size", defaultValue = "9") int size, @RequestParam(value = "contain", required = false) String text, @RequestParam(value = "sort", defaultValue = "recent") String sort ){
+        return proposalService.findAllPendingModeration(page,size,text,sort );
     }
 
     @GetMapping("/{proposalId}")
