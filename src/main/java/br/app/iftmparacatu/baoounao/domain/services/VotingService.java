@@ -4,6 +4,7 @@ import br.app.iftmparacatu.baoounao.api.exception.EntityNotFoundException;
 import br.app.iftmparacatu.baoounao.api.exception.NotAllowedOperation;
 import br.app.iftmparacatu.baoounao.domain.dtos.input.VotingDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryLimitDto;
+import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryProposalFilterDto;
 import br.app.iftmparacatu.baoounao.domain.model.*;
 import br.app.iftmparacatu.baoounao.domain.repository.VotingRepository;
 import br.app.iftmparacatu.baoounao.domain.util.ResponseUtil;
@@ -14,7 +15,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class VotingService {
@@ -69,8 +72,30 @@ public class VotingService {
         CycleEntity currentCycle = cycleService.findProgressCycle().orElseThrow(() -> new EntityNotFoundException(String.format("Não foram localizados ciclos em andamento")));
         Long userVotesCurrentCycle = votingRepository.countByUserEntityAndProposalEntityCycleEntity(SecurityUtil.getAuthenticatedUser(),currentCycle);
         RecoveryLimitDto recoveryLimitDto = RecoveryLimitDto.builder()
-                .available(VOTES_LIMIT - userVotesCurrentCycle)
+                .available(userVotesCurrentCycle)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(recoveryLimitDto);
+    }
+
+    public List<RecoveryProposalFilterDto> findAllVotedUserProposals(){
+        CycleEntity currentCycle = cycleService.findProgressCycle().orElseThrow(() -> new EntityNotFoundException(String.format("Não foram localizados ciclos em andamento")));
+        List<VotingEntity> votingEntityList = votingRepository.findAllByUserEntityAndProposalEntityCycleEntity(SecurityUtil.getAuthenticatedUser(),currentCycle);
+        List <RecoveryProposalFilterDto> recoveryProposalDtoList = votingEntityList.stream()
+                .map(vote -> mapToDto(vote.getProposalEntity(),countByProposalEntity(vote.getProposalEntity())))
+                .collect(Collectors.toList());
+        return recoveryProposalDtoList;
+    }
+
+    public RecoveryProposalFilterDto mapToDto(ProposalEntity proposalEntity, int votes){
+        RecoveryProposalFilterDto recoveryProposalDto = RecoveryProposalFilterDto.builder()
+                .id(proposalEntity.getId())
+                .title(proposalEntity.getTitle())
+                .description(proposalEntity.getDescription())
+                .category(proposalEntity.getCategoryEntity().getTitle())
+                .icon(proposalEntity.getCategoryEntity().getIcon())
+                .votes(votes)
+                .createdAt(proposalEntity.getCreatedAt())
+                .build();
+        return recoveryProposalDto;
     }
 }

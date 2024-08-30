@@ -27,7 +27,6 @@ public class CycleService {
 
     public Optional<CycleEntity> findProgressCycle(){
         LocalDate date = LocalDate.now();
-        System.out.println(date);
         return cycleRepository.findByStartDateLessThanEqualAndFinishDateGreaterThanEqualAndActiveTrue(date,date);
     }
 
@@ -82,7 +81,7 @@ public class CycleService {
             throw new NotAllowedOperation(String.format("Ciclo %s já cadastrado !!",createCycleDto.title()));
         }
 
-        if (!overlappingCycleList.isEmpty()) {
+        if (!overlappingCycleList.isEmpty() && (cycleID != checkCycle.get().getId())) {
             List<String> cycleTitles = overlappingCycleList.stream()
                     .filter(Optional::isPresent) // Filtra apenas os Optionals que contêm valores
                     .map(Optional::get) // Obtém o valor do Optional
@@ -143,7 +142,7 @@ public class CycleService {
                 .ifPresent(existingCycle::setStartDate);
         Optional.ofNullable(updatedCycleDto.finishDate())
                 .ifPresent(existingCycle::setFinishDate);
-        Optional.of(updatedCycleDto.active())
+        Optional.ofNullable(updatedCycleDto.active())
                 .ifPresent(existingCycle::setActive);
         cycleRepository.save(existingCycle);
         return ResponseUtil.createSuccessResponse("Ciclo atualizada com sucesso !!",HttpStatus.OK);

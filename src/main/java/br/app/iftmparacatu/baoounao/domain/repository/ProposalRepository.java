@@ -19,11 +19,7 @@ public interface ProposalRepository extends JpaRepository<ProposalEntity,Long> {
     List<ProposalEntity> findByCycleEntityAndTitleContainingAndSituationOrCycleEntityAndDescriptionContainingAndSituation(
             CycleEntity cycleEntity1, String text1, Situation situation1,
             CycleEntity cycleEntity2, String text2, Situation situation2);
-    Page<ProposalEntity> findByCycleEntityAndTitleContainingAndSituationOrCycleEntityAndDescriptionContainingAndSituation(
-            CycleEntity cycleEntity1, String text1, Situation situation1,
-            CycleEntity cycleEntity2, String text2, Situation situation2,Pageable pageable);
     List<ProposalEntity> findAllByCycleEntityAndActiveTrueAndSituation(CycleEntity cycleEntity,Situation situation);
-    List<ProposalEntity> findByCycleEntityAndSituationAndActiveTrueOrderByCreatedAtDesc(CycleEntity cycleEntity, Situation situation);
     List<ProposalEntity> findByCycleEntityAndActiveTrue(CycleEntity cycleEntity);
     List<ProposalEntity> findAllByUserEntityAndCycleEntityAndActiveTrueOrderByCreatedAtDesc(UserEntity userEntity,CycleEntity cycleEntity);
     Long countBySituationAndCycleEntityAndActiveTrue(Situation situation, CycleEntity cycleEntity);
