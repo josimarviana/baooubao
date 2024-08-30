@@ -295,7 +295,7 @@ public class ProposalService {
         Situation situation = Situation.OPEN_FOR_VOTING;
         Pageable pageable = PageRequest.of(page, size);
 
-        List <RecoveryProposalFilterDto> recoveryProposalDtoList = new ArrayList<>();
+        List <RecoveryProposalFilterDto> recoveryProposalDtoList;
 
         if (showVoted){
             recoveryProposalDtoList = votingService.findAllVotedUserProposals();
