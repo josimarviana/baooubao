@@ -72,7 +72,7 @@ public class VotingService {
         CycleEntity currentCycle = cycleService.findProgressCycle().orElseThrow(() -> new EntityNotFoundException(String.format("Não foram localizados ciclos em andamento")));
         Long userVotesCurrentCycle = votingRepository.countByUserEntityAndProposalEntityCycleEntity(SecurityUtil.getAuthenticatedUser(),currentCycle);
         RecoveryLimitDto recoveryLimitDto = RecoveryLimitDto.builder()
-                .available(VOTES_LIMIT - userVotesCurrentCycle)
+                .available(userVotesCurrentCycle)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(recoveryLimitDto);
     }

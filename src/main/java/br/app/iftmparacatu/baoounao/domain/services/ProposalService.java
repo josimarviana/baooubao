@@ -299,11 +299,8 @@ public class ProposalService {
 
         if (showVoted){
             recoveryProposalDtoList = votingService.findAllVotedUserProposals();
-
         }else{
             List<ProposalEntity> proposalEntityList = proposalRepository.findByCycleEntityAndTitleContainingAndSituationOrCycleEntityAndDescriptionContainingAndSituation(currentCycle,text,situation,currentCycle,text,situation);
-
-
             recoveryProposalDtoList = proposalEntityList.stream()
                     .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal)))
                     .collect(Collectors.toList());
