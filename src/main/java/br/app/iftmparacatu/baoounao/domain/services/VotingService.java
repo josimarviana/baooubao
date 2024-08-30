@@ -78,7 +78,8 @@ public class VotingService {
     }
 
     public List<RecoveryProposalFilterDto> findAllVotedUserProposals(){
-        List<VotingEntity> votingEntityList = votingRepository.findAllByUserEntity(SecurityUtil.getAuthenticatedUser());
+        CycleEntity currentCycle = cycleService.findProgressCycle().orElseThrow(() -> new EntityNotFoundException(String.format("Não foram localizados ciclos em andamento")));
+        List<VotingEntity> votingEntityList = votingRepository.findAllByUserEntityAndProposalEntityCycleEntity(SecurityUtil.getAuthenticatedUser(),currentCycle);
         List <RecoveryProposalFilterDto> recoveryProposalDtoList = votingEntityList.stream()
                 .map(vote -> mapToDto(vote.getProposalEntity(),countByProposalEntity(vote.getProposalEntity())))
                 .collect(Collectors.toList());
