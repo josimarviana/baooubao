@@ -4,6 +4,7 @@ import br.app.iftmparacatu.baoounao.api.exception.EntityNotFoundException;
 import br.app.iftmparacatu.baoounao.api.exception.NotAllowedOperation;
 import br.app.iftmparacatu.baoounao.domain.dtos.input.VotingDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryLimitDto;
+import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryProposalFilterDto;
 import br.app.iftmparacatu.baoounao.domain.model.*;
 import br.app.iftmparacatu.baoounao.domain.repository.VotingRepository;
 import br.app.iftmparacatu.baoounao.domain.util.ResponseUtil;
@@ -14,7 +15,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class VotingService {
@@ -72,5 +75,26 @@ public class VotingService {
                 .available(VOTES_LIMIT - userVotesCurrentCycle)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(recoveryLimitDto);
+    }
+
+    public ResponseEntity<Object> findAllVotedUserProposals(){
+        List<VotingEntity> votingEntityList = votingRepository.findAllByUserEntity(SecurityUtil.getAuthenticatedUser());
+        List <RecoveryProposalFilterDto> recoveryProposalDtoList = votingEntityList.stream()
+                .map(vote -> mapToDto(vote.getProposalEntity(),countByProposalEntity(vote.getProposalEntity())))
+                .collect(Collectors.toList());
+        return ResponseEntity.status(HttpStatus.OK).body(recoveryProposalDtoList);
+    }
+
+    public RecoveryProposalFilterDto mapToDto(ProposalEntity proposalEntity, int votes){
+        RecoveryProposalFilterDto recoveryProposalDto = RecoveryProposalFilterDto.builder()
+                .id(proposalEntity.getId())
+                .title(proposalEntity.getTitle())
+                .description(proposalEntity.getDescription())
+                .category(proposalEntity.getCategoryEntity().getTitle())
+                .icon(proposalEntity.getCategoryEntity().getIcon())
+                .votes(votes)
+                .createdAt(proposalEntity.getCreatedAt())
+                .build();
+        return recoveryProposalDto;
     }
 }

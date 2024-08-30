@@ -29,6 +29,11 @@ public class VotingController {
         return votingService.remove(votingDto);
     }
 
+    @GetMapping("/proposal/by-user")
+    public ResponseEntity<Object> findAllVotedUserProposals(){
+        return votingService.findAllVotedUserProposals();
+    }
+
     @GetMapping("/limit")
     public ResponseEntity<Object> limit(){
         return votingService.limit();

@@ -5,8 +5,10 @@ import br.app.iftmparacatu.baoounao.domain.model.ProposalEntity;
 import br.app.iftmparacatu.baoounao.domain.model.UserEntity;
 import br.app.iftmparacatu.baoounao.domain.model.VotingEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -19,4 +21,6 @@ public interface VotingRepository extends JpaRepository<VotingEntity,Long> {
     Optional<VotingEntity> findFirstByUserEntityAndProposalEntity(UserEntity userEntity, ProposalEntity proposalEntity);
 
     Long countByProposalEntityCycleEntity(CycleEntity cycleEntity);
+
+    List<VotingEntity> findAllByUserEntity(UserEntity userEntity);
 }
