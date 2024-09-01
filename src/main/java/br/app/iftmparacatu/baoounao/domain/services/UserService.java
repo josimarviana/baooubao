@@ -1,10 +1,7 @@
 package br.app.iftmparacatu.baoounao.domain.services;
 
 
-import br.app.iftmparacatu.baoounao.api.exception.EmailSendingException;
-import br.app.iftmparacatu.baoounao.api.exception.InactiveUserException;
-import br.app.iftmparacatu.baoounao.api.exception.InvalidDomainException;
-import br.app.iftmparacatu.baoounao.api.exception.InvalidLoginException;
+import br.app.iftmparacatu.baoounao.api.exception.*;
 import br.app.iftmparacatu.baoounao.config.SecurityConfig;
 import br.app.iftmparacatu.baoounao.domain.dtos.input.CreateUserDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.input.LoginUserDto;
@@ -48,11 +45,13 @@ public class UserService {
     private String urlAuthenticated;
     @Value("${url.email.redirect.expired}")
     private String urlExpired;
+    @Value("${url.valid.token.trocar.senha}")
+    private String urlValidTokenForTrocaSenha;
 
     @Value("${url.email}")
     private String urlConfirmationEmail;
-    @Value("${url.email}")
-    private String urlConfirmationTrocarSenha;
+    @Value("${url.email.senha}")
+    private String urlTrocarSenha;
 
 
     @Autowired
@@ -138,7 +137,7 @@ public class UserService {
                 }).orElseGet(() -> {
                     confirmationTokenService.findByToken(token)
                             .ifPresent(confirmationTokenService::delete);
-                    URI redirectUriExpired = URI.create(urlAuthenticated);
+                    URI redirectUriExpired = URI.create(urlExpired);
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST).location(redirectUriExpired).build();
 
                 });
@@ -219,21 +218,47 @@ public class UserService {
         return ResponseEntity.ok("Usuário atualizado com sucesso!");
     }
 
-    public void validateEmail(String email) {
+    public ResponseEntity<String> validateEmail(String email) {
         UserDetails user =userRepository.findByEmail(email);
       if (user.isEnabled()) {
           try {
-              emailService.enviarEmailTrocaDeSenha(((UserEntity) user).getEmail(), user.getUsername(), confirmationTokenService.salvar((UserEntity) user, urlConfirmationTrocarSenha));
+              emailService.enviarEmailTrocaDeSenha(((UserEntity) user).getEmail(), user.getUsername(), confirmationTokenService.salvar((UserEntity) user, urlValidTokenForTrocaSenha));
+          return ResponseEntity.status(HttpStatus.OK).body("deu certo");
           } catch (MessagingException e) {
               throw new EmailSendingException("Erro ao enviar e-mail de troca de senha");
+
           }
       }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("email inativo");
+
     }
 
-    public ResponseEntity<Object> trocarSenha(String token, String senha, String confirmacaoSenha) {
-        Optional<ConfirmationTokenEntity> teste = confirmationTokenService.validation(token);
+    public ResponseEntity<Object> validateToken(String token) {
+        return confirmationTokenService.validation(token)
+                .map(t -> {
+                   confirmationTokenService.delete(t);
+                   String url = urlTrocarSenha.replace("{token}", token);
+                    URI redirectUri = URI.create(url);
+                    return ResponseEntity.status(HttpStatus.FOUND).location(redirectUri).build();
+                }).orElseGet(() -> {
+                    confirmationTokenService.findByToken(token)
+                            .ifPresent(confirmationTokenService::delete);
+                    URI redirectUriExpired = URI.create(urlExpired);
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).location(redirectUriExpired).build();
+
+                });
+    }
+
+    public ResponseEntity<Object> trocarSenha(String token,Map<String, String> request) {
+        String senha = request.get("senha");
+        String confirmacaoSenha = request.get("confirmacaoSenha");
+        Optional<ConfirmationTokenEntity> optionalToken = confirmationTokenService.validation(token);
+        if (optionalToken.isEmpty()) {
+            throw new EntityNotFoundException("Token inválido ou expirado");
+        }
+
         if (senha.equals(confirmacaoSenha)) {
-            teste.get().getUser().setPassword(securityConfiguration.passwordEncoder().encode(senha));
+            optionalToken.get().getUser().setPassword(securityConfiguration.passwordEncoder().encode(senha));
             return ResponseEntity.ok("As senhas foram trocadas");
         }else throw new RuntimeException("senha nao batem!");
     }
