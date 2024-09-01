@@ -28,14 +28,10 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.math.BigInteger;
 import java.net.URI;
-import java.security.SecureRandom;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -218,20 +214,27 @@ public class UserService {
         return ResponseEntity.ok("Usuário atualizado com sucesso!");
     }
 
-    public ResponseEntity<Object> validateEmail(String email) {
-        UserDetails user =userRepository.findByEmail(email);
-      if (user.isEnabled()) {
-          try {
-              emailService.enviarEmailTrocaDeSenha(((UserEntity) user).getEmail(), user.getUsername(), confirmationTokenService.salvar((UserEntity) user, urlValidTokenForTrocaSenha));
-          return ResponseEntity.status(HttpStatus.OK).body("Email para trocar de senha enviado!");
-          } catch (MessagingException e) {
-              throw new EmailSendingException("Erro ao enviar e-mail de troca de senha");
-
-          }
-      }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("email inativo");
-
+    public ResponseEntity<String> validateEmail(String email) {
+        return Optional.ofNullable(userRepository.findByEmail(email))
+                .map(user -> {
+                    if (user.isEnabled()) {
+                        try {
+                            emailService.enviarEmailTrocaDeSenha(
+                                    ((UserEntity) user).getEmail(),
+                                    user.getUsername(),
+                                    confirmationTokenService.salvar((UserEntity) user, urlValidTokenForTrocaSenha)
+                            );
+                            return ResponseEntity.status(HttpStatus.OK).body("Email para trocar de senha enviado!");
+                        } catch (MessagingException e) {
+                            throw new EmailSendingException("Erro ao enviar e-mail de troca de senha");
+                        }
+                    } else {
+                        throw new EntityNotFoundException("Usuário não está habilitado");
+                    }
+                })
+                .orElseThrow(() -> new EntityNotFoundException("Email não encontrado"));
     }
+
 
     public ResponseEntity<Object> validateToken(String token) {
         return confirmationTokenService.validation(token)
