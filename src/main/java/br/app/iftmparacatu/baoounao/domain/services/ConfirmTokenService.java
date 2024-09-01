@@ -23,10 +23,7 @@ public class ConfirmTokenService {
     @Autowired
     private ConfimationTokenRepository confirmationTokenRepository;
 
-    @Value("${url.email}")
-    private String urlConfirmationEmail;
-
-    public String salvar(UserEntity user) {
+    public String salvar(UserEntity user, String urlConfirmationEmail) {
 
        ConfirmationTokenEntity token = ConfirmationTokenEntity.builder()
                .token(UUID.randomUUID().toString())

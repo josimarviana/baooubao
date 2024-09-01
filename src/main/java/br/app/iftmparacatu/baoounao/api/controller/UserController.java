@@ -64,6 +64,24 @@ public class UserController {
 
     }
 
+    @GetMapping("/email/{email}")
+    public ResponseEntity<String> receberEmail(@PathVariable String email) {
+        return  userService.validateEmail(email);
+
+    }
+
+    @GetMapping("/validation/{token}")
+    public ResponseEntity<Object> validarTokenTrocaSenha(@PathVariable String token) {
+        return  userService.validateToken(token);
+
+    }
+
+    @PatchMapping("/email/senha/{token}")
+    public ResponseEntity<Object> receberSenha(@PathVariable String token,  @RequestBody Map<String, String> request) {
+
+        return  userService.trocarSenha(token,request);
+
+    }
 }
 
 
