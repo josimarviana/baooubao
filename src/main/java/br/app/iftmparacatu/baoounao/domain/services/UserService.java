@@ -218,12 +218,12 @@ public class UserService {
         return ResponseEntity.ok("Usuário atualizado com sucesso!");
     }
 
-    public ResponseEntity<String> validateEmail(String email) {
+    public ResponseEntity<Object> validateEmail(String email) {
         UserDetails user =userRepository.findByEmail(email);
       if (user.isEnabled()) {
           try {
               emailService.enviarEmailTrocaDeSenha(((UserEntity) user).getEmail(), user.getUsername(), confirmationTokenService.salvar((UserEntity) user, urlValidTokenForTrocaSenha));
-          return ResponseEntity.status(HttpStatus.OK).body("deu certo");
+          return ResponseEntity.status(HttpStatus.OK).body("Email para trocar de senha enviado!");
           } catch (MessagingException e) {
               throw new EmailSendingException("Erro ao enviar e-mail de troca de senha");
 
