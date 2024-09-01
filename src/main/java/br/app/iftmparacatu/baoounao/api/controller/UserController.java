@@ -65,7 +65,7 @@ public class UserController {
     }
 
     @GetMapping("/email/{email}")
-    public ResponseEntity<String> receberEmail(@PathVariable String email) {
+    public ResponseEntity<Object> receberEmail(@PathVariable String email) {
         return  userService.validateEmail(email);
 
     }
