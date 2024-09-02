@@ -1,6 +1,7 @@
 package br.app.iftmparacatu.baoounao.api.controller;
 
 import br.app.iftmparacatu.baoounao.domain.dtos.input.CreateCycleDto;
+import br.app.iftmparacatu.baoounao.domain.dtos.output.PaginatedCycleResponse;
 import br.app.iftmparacatu.baoounao.domain.services.CycleService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,8 +15,11 @@ public class CycleController {
     @Autowired
     private CycleService cycleService;
     @GetMapping
-    public ResponseEntity<Object> list(){
-        return cycleService.findAll();
+    public ResponseEntity<PaginatedCycleResponse> list(@RequestParam(value = "page", defaultValue = "0") int page,
+                                                       @RequestParam(value = "size", defaultValue = "9") int size,
+                                                       @RequestParam(value = "contain", required = false) String text,
+                                                       @RequestParam(value = "sort", defaultValue = "recent_createdAt") String sort){
+        return cycleService.findAll(page,size,text,sort);
     }
     @GetMapping("/{cycleID}")
     public ResponseEntity<Object> findById(@PathVariable Long cycleID) {
