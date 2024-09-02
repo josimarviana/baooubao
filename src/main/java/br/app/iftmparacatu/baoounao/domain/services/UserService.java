@@ -134,7 +134,7 @@ public class UserService {
                     confirmationTokenService.findByToken(token)
                             .ifPresent(confirmationTokenService::delete);
                     URI redirectUriExpired = URI.create(urlExpired);
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).location(redirectUriExpired).build();
+                    return ResponseEntity.status(HttpStatus.FOUND).location(redirectUriExpired).build();
 
                 });
     }
@@ -244,10 +244,9 @@ public class UserService {
                     return ResponseEntity.status(HttpStatus.FOUND).location(redirectUri).build();
                 })
                 .orElseGet(() -> {
-                    confirmationTokenService.findByToken(token)
-                            .ifPresent(confirmationTokenService::delete);
+                    confirmationTokenService.findByToken(token).ifPresent(confirmationTokenService::delete);
                     URI redirectUriExpired = URI.create(urlExpired);
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).location(redirectUriExpired).build();
+                    return ResponseEntity.status(HttpStatus.FOUND).location(redirectUriExpired).build();
                 });
     }
 
