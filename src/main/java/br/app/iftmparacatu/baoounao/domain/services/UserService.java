@@ -221,7 +221,7 @@ public class UserService {
                         try {
                             emailService.enviarEmailTrocaDeSenha(
                                     ((UserEntity) user).getEmail(),
-                                    user.getUsername(),
+                                    ((UserEntity) user).getName(),
                                     confirmationTokenService.salvar((UserEntity) user, urlValidTokenForTrocaSenha)
                             );
                             return ResponseEntity.status(HttpStatus.OK).body("Email para trocar de senha enviado!");
@@ -239,16 +239,15 @@ public class UserService {
     public ResponseEntity<Object> validateToken(String token) {
         return confirmationTokenService.validation(token)
                 .map(t -> {
-                   confirmationTokenService.delete(t);
-                   String url = urlTrocarSenha.replace("{token}", token);
+                    String url = urlTrocarSenha.replace("{token}", token);
                     URI redirectUri = URI.create(url);
                     return ResponseEntity.status(HttpStatus.FOUND).location(redirectUri).build();
-                }).orElseGet(() -> {
+                })
+                .orElseGet(() -> {
                     confirmationTokenService.findByToken(token)
                             .ifPresent(confirmationTokenService::delete);
                     URI redirectUriExpired = URI.create(urlExpired);
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST).location(redirectUriExpired).build();
-
                 });
     }
 
@@ -262,8 +261,9 @@ public class UserService {
 
         if (senha.equals(confirmacaoSenha)) {
             optionalToken.get().getUser().setPassword(securityConfiguration.passwordEncoder().encode(senha));
+            confirmationTokenService.delete(optionalToken.get());
             return ResponseEntity.ok("As senhas foram trocadas");
-        }else throw new RuntimeException("senha nao batem!");
+        }else throw new RuntimeException("As senhas não batem!");
     }
 
 
