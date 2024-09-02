@@ -77,9 +77,9 @@ public class UserController {
     }
 
     @PatchMapping("/email/senha/{token}")
-    public ResponseEntity<Object> receberSenha(@PathVariable String token,  @RequestBody Map<String, String> request) {
+    public ResponseEntity<Object> receberSenha(@PathVariable String token, @RequestBody  @Valid UpdateUserDto updateUserDto) {
 
-        return  userService.trocarSenha(token,request);
+        return  userService.trocarSenha(token,updateUserDto);
 
     }
 }

@@ -250,16 +250,13 @@ public class UserService {
                 });
     }
 
-    public ResponseEntity<Object> trocarSenha(String token,Map<String, String> request) {
-        String senha = request.get("password");
-        String confirmacaoSenha = request.get("confirmPassword");
+    public ResponseEntity<Object> trocarSenha(String token,UpdateUserDto dto) {
         Optional<ConfirmationTokenEntity> optionalToken = confirmationTokenService.validation(token);
         if (optionalToken.isEmpty()) {
             throw new EntityNotFoundException("Token inválido ou expirado");
         }
-
-        if (senha.equals(confirmacaoSenha)) {
-            optionalToken.get().getUser().setPassword(securityConfiguration.passwordEncoder().encode(senha));
+        if (dto.password().equals(dto.confirmPassword())) {
+            optionalToken.get().getUser().setPassword(securityConfiguration.passwordEncoder().encode(dto.password()));
             confirmationTokenService.delete(optionalToken.get());
             return ResponseEntity.ok("As senhas foram trocadas");
         }else throw new RuntimeException("As senhas não batem!");
