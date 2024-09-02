@@ -252,8 +252,8 @@ public class UserService {
     }
 
     public ResponseEntity<Object> trocarSenha(String token,Map<String, String> request) {
-        String senha = request.get("senha");
-        String confirmacaoSenha = request.get("confirmacaoSenha");
+        String senha = request.get("password");
+        String confirmacaoSenha = request.get("confirmPassword");
         Optional<ConfirmationTokenEntity> optionalToken = confirmationTokenService.validation(token);
         if (optionalToken.isEmpty()) {
             throw new EntityNotFoundException("Token inválido ou expirado");
