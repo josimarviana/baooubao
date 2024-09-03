@@ -79,7 +79,7 @@ public class UserController {
         return  userService.trocarSenha(token,updateUserDto);
     }
 
-    @PatchMapping("/role/revoke-administrator")
+    @PatchMapping("/role/revoke-administrator/{userID}")
     public ResponseEntity<Object> revokeAdministrator(@Valid RevokeRoleDto revokeRoleDto,@PathVariable Long userID) {
         return userService.revokeAdministrator(userID,revokeRoleDto);
     }
