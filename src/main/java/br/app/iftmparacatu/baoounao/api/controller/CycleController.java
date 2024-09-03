@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 public class CycleController {
     @Autowired
     private CycleService cycleService;
-    @GetMapping
+    @GetMapping("/filter")
     public ResponseEntity<PaginatedCycleResponse> list(@RequestParam(value = "page", defaultValue = "0") int page,
                                                        @RequestParam(value = "size", defaultValue = "9") int size,
                                                        @RequestParam(value = "contain", required = false) String text,

@@ -17,7 +17,7 @@ public class CategoryController {
 
     @Autowired
     private CategoryService categoryService;
-    @GetMapping
+    @GetMapping("/filter")
     public ResponseEntity<Object> list(@RequestParam(value = "page", defaultValue = "0") int page,
                                        @RequestParam(value = "size", defaultValue = "9") int size,
                                        @RequestParam(value = "contain", required = false) String text,
