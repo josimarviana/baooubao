@@ -80,7 +80,7 @@ public class UserController {
     }
 
     @PatchMapping("/role/revoke-administrator/{userID}")
-    public ResponseEntity<Object> revokeAdministrator(@Valid RevokeRoleDto revokeRoleDto,@PathVariable Long userID) {
+    public ResponseEntity<Object> revokeAdministrator(RevokeRoleDto revokeRoleDto,@PathVariable Long userID) {
         return userService.revokeAdministrator(userID,revokeRoleDto);
     }
 }

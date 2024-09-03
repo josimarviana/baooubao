@@ -262,7 +262,7 @@ public class UserService {
 
         if (revokeRoleDto.revokeAdm() && roleEntitiesList.contains(new RoleEntity(RoleName.ROLE_ADMINISTRATOR))){
             roleEntitiesList.remove(roleEntitiesList.get(roleEntitiesList.indexOf(new RoleEntity(RoleName.ROLE_ADMINISTRATOR))));
-        }else if(revokeRoleDto.revokeAdm()){
+        }else if(!revokeRoleDto.revokeAdm()){
             roleEntitiesList.add(new RoleEntity(RoleName.ROLE_ADMINISTRATOR));
         }
         existingUser.setRoles(roleEntitiesList);
