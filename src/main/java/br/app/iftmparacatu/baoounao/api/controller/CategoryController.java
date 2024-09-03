@@ -17,9 +17,12 @@ public class CategoryController {
 
     @Autowired
     private CategoryService categoryService;
-    @GetMapping
-    public ResponseEntity<Object> list(){
-        return categoryService.findAll();
+    @GetMapping("/filter")
+    public ResponseEntity<Object> list(@RequestParam(value = "page", defaultValue = "0") int page,
+                                       @RequestParam(value = "size", defaultValue = "9") int size,
+                                       @RequestParam(value = "contain", required = false) String text,
+                                       @RequestParam(value = "sort", defaultValue = "recent_createdAt") String sort){
+        return categoryService.findAll(page,size,text,sort);
     }
 
     @GetMapping("/active")

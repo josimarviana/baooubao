@@ -20,4 +20,5 @@ public interface CycleRepository extends JpaRepository<CycleEntity, Long> {
             LocalDate dateEnd,
             LocalDate startDateRangeStart, LocalDate startDateRangeEnd,
             LocalDate finishDateRangeStart, LocalDate finishDateRangeEnd);
+    List<CycleEntity> findByTitleContaining(String text);
 }

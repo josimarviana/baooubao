@@ -1,26 +1,27 @@
 package br.app.iftmparacatu.baoounao.domain.services;
 
 
-import br.app.iftmparacatu.baoounao.api.exception.EmailSendingException;
-import br.app.iftmparacatu.baoounao.api.exception.InactiveUserException;
-import br.app.iftmparacatu.baoounao.api.exception.InvalidDomainException;
-import br.app.iftmparacatu.baoounao.api.exception.InvalidLoginException;
+import br.app.iftmparacatu.baoounao.api.exception.*;
 import br.app.iftmparacatu.baoounao.config.SecurityConfig;
 import br.app.iftmparacatu.baoounao.domain.dtos.input.CreateUserDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.input.LoginUserDto;
+import br.app.iftmparacatu.baoounao.domain.dtos.input.RevokeRoleDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.input.UpdateUserDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.*;
 import br.app.iftmparacatu.baoounao.domain.enums.RoleName;
 import br.app.iftmparacatu.baoounao.domain.enums.UserType;
+import br.app.iftmparacatu.baoounao.domain.model.ConfirmationTokenEntity;
 import br.app.iftmparacatu.baoounao.domain.model.RoleEntity;
 import br.app.iftmparacatu.baoounao.domain.model.UserEntity;
 import br.app.iftmparacatu.baoounao.domain.repository.RoleRepository;
 import br.app.iftmparacatu.baoounao.domain.repository.UserRepository;
+import br.app.iftmparacatu.baoounao.domain.util.ResponseUtil;
 import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -28,22 +29,29 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.math.BigInteger;
 import java.net.URI;
-import java.security.SecureRandom;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class UserService {
-    @Value("${url.email.redirect}")
-    private String url_redirect;
+    @Value("${url.email.redirect.authenticated}")
+    private String urlAuthenticated;
+    @Value("${url.email.redirect.expired}")
+    private String urlExpired;
+    @Value("${url.valid.token.trocar.senha}")
+    private String urlValidTokenForTrocaSenha;
+
+    @Value("${url.email}")
+    private String urlConfirmationEmail;
+    @Value("${url.email.senha}")
+    private String urlTrocarSenha;
+
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -88,16 +96,13 @@ public class UserService {
         } catch (BadCredentialsException e) {
             throw new InvalidLoginException("Email ou senha incorretos");
 
-        } catch (UsernameNotFoundException e) {
-            throw new EntityNotFoundException("Email não encontrado");
-
-        } catch (Exception e) {
-            throw new InvalidLoginException("Erro ao tentar realizar o login");
+        } catch (InternalAuthenticationServiceException e) {
+            throw new EntityNotFoundException("Email ou senha incorretos");
         }
     }
 
     public void createUser(CreateUserDto createUserDto) {
-
+        try {
         if (isValidDomainAndType(createUserDto)) {
             UserEntity newUser = UserEntity.builder()
                     .email(createUserDto.email())
@@ -107,13 +112,15 @@ public class UserService {
                     .roles(List.of(roleRepository.findByName(RoleName.ROLE_USER)))
                     .build();
             userRepository.save(newUser);
-            try {
-                emailService.enviarEmailDeConfirmacao(createUserDto.email(), createUserDto.name(), confirmationTokenService.salvar(newUser));
-            } catch (MessagingException e) {
-                throw new EmailSendingException("Erro ao enviar e-mail de confirmação");
-            }
-        } else throw new InvalidDomainException("Domínio não é válido");
 
+                emailService.enviarEmailDeConfirmacao(createUserDto.email(), createUserDto.name(), confirmationTokenService.salvar(newUser,urlConfirmationEmail));
+
+        } else throw new InvalidDomainException("Domínio não é válido");
+        } catch (MessagingException e) {
+            throw new EmailSendingException("Erro ao enviar e-mail de confirmação");
+        }catch (DataIntegrityViolationException e) {
+            throw new NotAllowedOperation("Email ja cadastrado!");
+        }
     }
 
     public ResponseEntity<Object> validateUser(String token) {
@@ -123,12 +130,14 @@ public class UserService {
                     user.setActive(true);
                     userRepository.save(user);
                     confirmationTokenService.delete(t);
-                    URI redirectUri = URI.create(url_redirect);
+                    URI redirectUri = URI.create(urlAuthenticated);
                     return ResponseEntity.status(HttpStatus.FOUND).location(redirectUri).build();
                 }).orElseGet(() -> {
                     confirmationTokenService.findByToken(token)
                             .ifPresent(confirmationTokenService::delete);
-                    return ResponseEntity.badRequest().body("Token inválido ou expirado");
+                    URI redirectUriExpired = URI.create(urlExpired);
+                    return ResponseEntity.status(HttpStatus.FOUND).location(redirectUriExpired).build();
+
                 });
     }
 
@@ -183,15 +192,6 @@ public class UserService {
     public ResponseEntity<Object> updateUser(Long userId, UpdateUserDto updateUserDto) {
         UserEntity existingUser = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado!"));
-
-        Optional.ofNullable(updateUserDto.name())
-                .ifPresent(existingUser::setName);
-        Optional.ofNullable(updateUserDto.email())
-                .ifPresent(existingUser::setEmail);
-        Optional.ofNullable(updateUserDto.password())
-                .ifPresent(password -> existingUser.setPassword(securityConfiguration.passwordEncoder().encode(password)));
-        Optional.ofNullable(updateUserDto.type())
-                .ifPresent(existingUser::setType);
         try {
 
             Optional.ofNullable(updateUserDto.roles()).ifPresent(roles -> {
@@ -205,5 +205,68 @@ public class UserService {
         }
         userRepository.save(existingUser);
         return ResponseEntity.ok("Usuário atualizado com sucesso!");
+    }
+
+    public ResponseEntity<String> validateEmail(String email) {
+        return Optional.ofNullable(userRepository.findByEmail(email))
+                .map(user -> {
+                    if (user.isEnabled()) {
+                        try {
+                            emailService.enviarEmailTrocaDeSenha(
+                                    ((UserEntity) user).getEmail(),
+                                    ((UserEntity) user).getName(),
+                                    confirmationTokenService.salvar((UserEntity) user, urlValidTokenForTrocaSenha)
+                            );
+                            return ResponseEntity.status(HttpStatus.OK).body("Email para trocar de senha enviado!");
+                        } catch (MessagingException e) {
+                            throw new EmailSendingException("Erro ao enviar e-mail de troca de senha");
+                        }
+                    } else {
+                        throw new EntityNotFoundException("Usuário não está habilitado");
+                    }
+                })
+                .orElseThrow(() -> new EntityNotFoundException("Email não encontrado"));
+    }
+
+
+    public ResponseEntity<Object> validateToken(String token) {
+        return confirmationTokenService.validation(token)
+                .map(t -> {
+                    String url = urlTrocarSenha.replace("{token}", token);
+                    URI redirectUri = URI.create(url);
+                    return ResponseEntity.status(HttpStatus.FOUND).location(redirectUri).build();
+                })
+                .orElseGet(() -> {
+                    confirmationTokenService.findByToken(token).ifPresent(confirmationTokenService::delete);
+                    URI redirectUriExpired = URI.create(urlExpired);
+                    return ResponseEntity.status(HttpStatus.FOUND).location(redirectUriExpired).build();
+                });
+    }
+
+    public ResponseEntity<Object> trocarSenha(String token,UpdateUserDto dto) {
+        Optional<ConfirmationTokenEntity> optionalToken = confirmationTokenService.validation(token);
+        if (optionalToken.isEmpty()) {
+            throw new EntityNotFoundException("Token inválido ou expirado");
+        }
+        if (dto.password().equals(dto.confirmPassword())) {
+            optionalToken.get().getUser().setPassword(securityConfiguration.passwordEncoder().encode(dto.password()));
+            confirmationTokenService.delete(optionalToken.get());
+            return ResponseEntity.ok("As senhas foram trocadas");
+        }else throw new RuntimeException("As senhas não batem!");
+    }
+
+    public ResponseEntity<Object> revokeAdministrator(Long userId, RevokeRoleDto revokeRoleDto) {
+        UserEntity existingUser = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado!"));
+        List<RoleEntity> roleEntitiesList = existingUser.getRoles();
+
+        if (revokeRoleDto.revoke() && roleEntitiesList.contains(new RoleEntity(RoleName.ROLE_ADMINISTRATOR))){
+            roleEntitiesList.remove(roleEntitiesList.get(roleEntitiesList.indexOf(new RoleEntity(RoleName.ROLE_ADMINISTRATOR))));
+        }else if(!revokeRoleDto.revoke() && !roleEntitiesList.contains(new RoleEntity(RoleName.ROLE_ADMINISTRATOR))){
+            roleEntitiesList.add(roleRepository.findByName(RoleName.ROLE_ADMINISTRATOR));
+        }
+        existingUser.setRoles(roleEntitiesList);
+        userRepository.save(existingUser);
+        return ResponseUtil.createSuccessResponse("Cargo atualizado com sucesso !!",HttpStatus.OK);
     }
 }

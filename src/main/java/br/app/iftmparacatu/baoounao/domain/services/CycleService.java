@@ -3,6 +3,9 @@ package br.app.iftmparacatu.baoounao.domain.services;
 import br.app.iftmparacatu.baoounao.api.exception.EntityNotFoundException;
 import br.app.iftmparacatu.baoounao.api.exception.NotAllowedOperation;
 import br.app.iftmparacatu.baoounao.domain.dtos.input.CreateCycleDto;
+import br.app.iftmparacatu.baoounao.domain.dtos.output.PaginatedCycleResponse;
+import br.app.iftmparacatu.baoounao.domain.dtos.output.PaginatedProposalsResponse;
+import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryProposalFilterDto;
 import br.app.iftmparacatu.baoounao.domain.model.*;
 import br.app.iftmparacatu.baoounao.domain.repository.CycleRepository;
 import br.app.iftmparacatu.baoounao.domain.util.ResponseUtil;
@@ -10,12 +13,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class CycleService {
@@ -27,7 +29,6 @@ public class CycleService {
 
     public Optional<CycleEntity> findProgressCycle(){
         LocalDate date = LocalDate.now();
-        System.out.println(date);
         return cycleRepository.findByStartDateLessThanEqualAndFinishDateGreaterThanEqualAndActiveTrue(date,date);
     }
 
@@ -82,7 +83,7 @@ public class CycleService {
             throw new NotAllowedOperation(String.format("Ciclo %s já cadastrado !!",createCycleDto.title()));
         }
 
-        if (!overlappingCycleList.isEmpty()) {
+        if (!overlappingCycleList.isEmpty() && (cycleID != checkCycle.get().getId())) {
             List<String> cycleTitles = overlappingCycleList.stream()
                     .filter(Optional::isPresent) // Filtra apenas os Optionals que contêm valores
                     .map(Optional::get) // Obtém o valor do Optional
@@ -129,9 +130,50 @@ public class CycleService {
         Optional<CycleEntity> cycleEntity = Optional.ofNullable(cycleRepository.findById(cycleID).orElseThrow(() -> new EntityNotFoundException("REGISTRO NÃO ENCONTRADO!")));
         return ResponseEntity.status(HttpStatus.CREATED).body(cycleEntity.get());
     }
-    public ResponseEntity<Object> findAll(){
-        return ResponseEntity.status(HttpStatus.OK).body(cycleRepository.findAll());
+    public ResponseEntity<PaginatedCycleResponse> findAll(int page,int size,String text,String sort ){
+        List<CycleEntity> cycleEntityList = cycleRepository.findByTitleContaining(text);
+
+        sortCycles(cycleEntityList, sort);
+        int countReg = cycleEntityList.size();
+        int start = Math.min(page * size, countReg);
+        int end = Math.min((page + 1) * size, countReg);
+        List<CycleEntity> paginatedList = cycleEntityList.subList(start, end);
+
+        PaginatedCycleResponse response = PaginatedCycleResponse.builder()
+                .cycleEntityList(paginatedList)
+                .totalElements(countReg)
+                .totalPages((int) Math.ceil((double) countReg / size))
+                .currentPage(page)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
+
+    private void sortCycles(List<CycleEntity> cycleEntityList, String sort) {
+        switch (sort.toLowerCase()) {
+            case "recent_createdat":
+                cycleEntityList.sort(Comparator.comparing(CycleEntity::getCreatedAt).reversed());
+                break;
+            case "oldset_createdat":
+                cycleEntityList.sort(Comparator.comparing(CycleEntity::getCreatedAt));
+                break;
+            case "recent_startdate":
+                cycleEntityList.sort(Comparator.comparing(CycleEntity::getStartDate).reversed());
+                break;
+            case "oldest_startdate":
+                cycleEntityList.sort(Comparator.comparing(CycleEntity::getStartDate));
+                break;
+            case "recent_finishdate":
+                cycleEntityList.sort(Comparator.comparing(CycleEntity::getFinishDate).reversed());
+                break;
+            case "oldest_finishdate":
+                cycleEntityList.sort(Comparator.comparing(CycleEntity::getFinishDate));
+                break;
+            default:
+                break;
+        }
+    }
+
 
     public ResponseEntity<Object> update(Long cycleID, CreateCycleDto updatedCycleDto) {
         checkUpdateOrCreateCycle(cycleID,true,updatedCycleDto);
@@ -143,7 +185,7 @@ public class CycleService {
                 .ifPresent(existingCycle::setStartDate);
         Optional.ofNullable(updatedCycleDto.finishDate())
                 .ifPresent(existingCycle::setFinishDate);
-        Optional.of(updatedCycleDto.active())
+        Optional.ofNullable(updatedCycleDto.active())
                 .ifPresent(existingCycle::setActive);
         cycleRepository.save(existingCycle);
         return ResponseUtil.createSuccessResponse("Ciclo atualizada com sucesso !!",HttpStatus.OK);

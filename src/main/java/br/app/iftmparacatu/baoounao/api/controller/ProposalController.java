@@ -25,9 +25,8 @@ public class ProposalController {
     ProposalService proposalService;
 
     @GetMapping("/adm")
-    public ResponseEntity<List<RecoveryBasicProposalDto>> list (){
-        List<RecoveryBasicProposalDto> propostas =  proposalService.findAll();
-        return ResponseEntity.status(HttpStatus.OK).body(propostas);
+    public ResponseEntity<PaginatedProposalsResponse> listAllPendingModeration (@RequestParam(value = "page", defaultValue = "0") int page, @RequestParam(value = "size", defaultValue = "9") int size, @RequestParam(value = "contain", required = false) String text, @RequestParam(value = "sort", defaultValue = "recent") String sort ){
+        return proposalService.findAllPendingModeration(page,size,text,sort );
     }
 
     @GetMapping("/{proposalId}")
@@ -39,15 +38,15 @@ public class ProposalController {
     @PostMapping
     public ResponseEntity<Object> saveProposal (@RequestParam("title") String tittle,
                                                 @RequestParam("description") String description,
-                                                @RequestParam("url") String url,
-                                                @RequestParam("image") MultipartFile image,
+                                                @RequestParam(value = "url", required = false) String url,
+                                                @RequestParam(value = "image",required = false) MultipartFile image,
                                                 @RequestParam("category") String category) throws IOException{
         return proposalService.save(tittle, description, url, image, category);
     }
 
     @GetMapping("/filter")
-    public ResponseEntity<PaginatedProposalsResponse> filterByDescriptionOrTitle (@RequestParam(value = "page", defaultValue = "0") int page, @RequestParam(value = "size", defaultValue = "9") int size, @RequestParam(value = "contain", required = false) String text, @RequestParam(value = "sort", defaultValue = "recent") String sort ){
-        return proposalService.filterByDescriptionOrTitle(text,page,size,sort);
+    public ResponseEntity<PaginatedProposalsResponse> filterByDescriptionOrTitle (@RequestParam(value = "page", defaultValue = "0") int page, @RequestParam(value = "size", defaultValue = "9") int size, @RequestParam(value = "contain", required = false) String text, @RequestParam(value = "sort", defaultValue = "recent") String sort,@RequestParam(value = "voted", required = false) String voted){
+        return proposalService.filterByDescriptionOrTitle(text,page,size,sort,voted);
     }
     @GetMapping("/trending")
     public ResponseEntity<Object> trendingProposals (){

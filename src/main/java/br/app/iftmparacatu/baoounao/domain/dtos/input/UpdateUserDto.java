@@ -9,4 +9,4 @@ import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
 
-public record UpdateUserDto(String name, UserType type, String email, String password, List<RoleEntity> roles) {}
+public record UpdateUserDto(String name, UserType type, String email, @Password String password, String confirmPassword, List<RoleEntity> roles) {}

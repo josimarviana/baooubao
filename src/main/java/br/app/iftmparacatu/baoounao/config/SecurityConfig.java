@@ -22,7 +22,9 @@ public class SecurityConfig {
             "/user/login",
             "/user",
             "/user/token/**",
-            "/user/email",
+            "/user/email/**",
+            "/user/validation/**",
+            "/pages/messages/**",
             "/proposal/trending"
 
     };
@@ -36,6 +38,7 @@ public class SecurityConfig {
             "/cycle",
             "/category",
             "/proposal/adm/moderate/**",
+            "/user/role/revoke-adm/**",
             "/user/filter",
             "/proposal/adm"
     };

@@ -22,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import com.amazonaws.services.s3.AmazonS3;
 
@@ -149,12 +150,31 @@ public class ProposalService {
 
     }
 
-    public List<RecoveryBasicProposalDto> findAll(){ //Este endpoint lista todas as propostas pendentes de moderação
+    public ResponseEntity<PaginatedProposalsResponse> findAllPendingModeration(int page, int size, String text,String sort ){ //Este endpoint lista todas as propostas pendentes de moderação
         CycleEntity currentCycle = getCurrentCycleOrThrow();
-        List<ProposalEntity> proposals = proposalRepository.findByCycleEntityAndSituationAndActiveTrueOrderByCreatedAtDesc(currentCycle,Situation.PENDING_MODERATION);
-        return proposals.stream()
-                .map(proposal -> mapToDto(proposal, RecoveryBasicProposalDto.class))
+        //List<ProposalEntity> proposals = proposalRepository.findByCycleEntityAndSituationAndActiveTrueOrderByCreatedAtDesc(currentCycle,Situation.PENDING_MODERATION);
+
+        List<ProposalEntity> proposalEntityList = proposalRepository.findByCycleEntityAndTitleContainingAndSituationOrCycleEntityAndDescriptionContainingAndSituation(currentCycle,text,Situation.PENDING_MODERATION,currentCycle,text,Situation.PENDING_MODERATION);
+
+
+        List <RecoveryProposalFilterDto> recoveryProposalDtoList = proposalEntityList.stream()
+                .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal)))
                 .collect(Collectors.toList());
+
+        // Ordena a lista completa com base no critério fornecido
+        sortProposals(recoveryProposalDtoList, sort);
+        int countReg = recoveryProposalDtoList.size();
+        int start = Math.min(page * size, countReg);
+        int end = Math.min((page + 1) * size, countReg);
+        List<RecoveryProposalFilterDto> paginatedList = recoveryProposalDtoList.subList(start, end);
+
+        PaginatedProposalsResponse response = PaginatedProposalsResponse.builder()
+                .proposals(paginatedList)
+                .totalElements(countReg)
+                .totalPages((int) Math.ceil((double) countReg / size))
+                .currentPage(page)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     public ResponseEntity<Object> myProposals(){
@@ -216,6 +236,8 @@ public class ProposalService {
                 .ifPresent(existingProposal::setImage);
         Optional.ofNullable(updateProposalDto.categoryEntity())
                 .ifPresent(existingProposal::setCategoryEntity);
+        Optional.ofNullable(updateProposalDto.url())
+                .ifPresent(existingProposal::setVideoUrl);
         existingProposal.setSituation(Situation.PENDING_MODERATION);
         proposalRepository.save(existingProposal);
 
@@ -266,16 +288,23 @@ public class ProposalService {
         Optional<ProposalEntity> proposal = Optional.ofNullable(proposalRepository.findById(proposalId).orElseThrow(() -> new EntityNotFoundException(String.format("Proposta de id %d não foi encontrada",proposalId))));
         return ResponseEntity.status(HttpStatus.OK).body(new RecoveryVoteProposalDto(votingService.hasVoted(SecurityUtil.getAuthenticatedUser(),proposal.get())));
     }
-    public ResponseEntity<PaginatedProposalsResponse> filterByDescriptionOrTitle(String text,int page, int size, String sort){
+    public ResponseEntity<PaginatedProposalsResponse> filterByDescriptionOrTitle(String text,int page, int size, String sort, String voted){
+        boolean showVoted = voted != null ? (voted.equalsIgnoreCase("show")) : false;
+        System.out.println(showVoted);
         CycleEntity currentCycle = getCurrentCycleOrThrow();
         Situation situation = Situation.OPEN_FOR_VOTING;
         Pageable pageable = PageRequest.of(page, size);
-        List<ProposalEntity> proposalEntityList = proposalRepository.findByCycleEntityAndTitleContainingAndSituationOrCycleEntityAndDescriptionContainingAndSituation(currentCycle,text,situation,currentCycle,text,situation);
 
+        List <RecoveryProposalFilterDto> recoveryProposalDtoList;
 
-        List <RecoveryProposalFilterDto> recoveryProposalDtoList = proposalEntityList.stream()
-                .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal)))
-                .collect(Collectors.toList());
+        if (showVoted){
+            recoveryProposalDtoList = votingService.findAllVotedUserProposals();
+        }else{
+            List<ProposalEntity> proposalEntityList = proposalRepository.findByCycleEntityAndTitleContainingAndSituationOrCycleEntityAndDescriptionContainingAndSituation(currentCycle,text,situation,currentCycle,text,situation);
+            recoveryProposalDtoList = proposalEntityList.stream()
+                    .map(proposal -> mapToDto(proposal,votingService.countByProposalEntity(proposal)))
+                    .collect(Collectors.toList());
+        }
 
         // Ordena a lista completa com base no critério fornecido
         sortProposals(recoveryProposalDtoList, sort);

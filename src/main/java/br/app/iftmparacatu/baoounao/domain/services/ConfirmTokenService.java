@@ -23,15 +23,12 @@ public class ConfirmTokenService {
     @Autowired
     private ConfimationTokenRepository confirmationTokenRepository;
 
-    @Value("${url.email}")
-    private String urlConfirmationEmail;
-
-    public String salvar(UserEntity user) {
+    public String salvar(UserEntity user, String urlConfirmationEmail) {
 
        ConfirmationTokenEntity token = ConfirmationTokenEntity.builder()
                .token(UUID.randomUUID().toString())
                .createdDate(LocalDateTime.now())
-               .expiryDate(LocalDateTime.now().plusMinutes(5))
+               .expiryDate(LocalDateTime.now().plusMinutes(2))
                .user(user)
                .build();
         confirmationTokenRepository.save(token);
