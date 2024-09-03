@@ -14,6 +14,7 @@ import br.app.iftmparacatu.baoounao.domain.model.RoleEntity;
 import br.app.iftmparacatu.baoounao.domain.model.UserEntity;
 import br.app.iftmparacatu.baoounao.domain.repository.RoleRepository;
 import br.app.iftmparacatu.baoounao.domain.repository.UserRepository;
+import br.app.iftmparacatu.baoounao.domain.util.ResponseUtil;
 import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
@@ -190,15 +191,6 @@ public class UserService {
     public ResponseEntity<Object> updateUser(Long userId, UpdateUserDto updateUserDto) {
         UserEntity existingUser = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado!"));
-
-        Optional.ofNullable(updateUserDto.name())
-                .ifPresent(existingUser::setName);
-        Optional.ofNullable(updateUserDto.email())
-                .ifPresent(existingUser::setEmail);
-        Optional.ofNullable(updateUserDto.password())
-                .ifPresent(password -> existingUser.setPassword(securityConfiguration.passwordEncoder().encode(password)));
-        Optional.ofNullable(updateUserDto.type())
-                .ifPresent(existingUser::setType);
         try {
 
             Optional.ofNullable(updateUserDto.roles()).ifPresent(roles -> {
@@ -262,6 +254,17 @@ public class UserService {
         }else throw new RuntimeException("As senhas não batem!");
     }
 
+    public ResponseEntity<Object> revokeAdministrator(Long userId,RevokeRoleDto revokeRoleDto) {
+        UserEntity existingUser = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado!"));
+        List<RoleEntity> roleEntitiesList = existingUser.getRoles();
 
-
+        if (revokeRoleDto.revokeAdm() && roleEntitiesList.contains(new RoleEntity(RoleName.ROLE_ADMINISTRATOR))){
+            roleEntitiesList.remove(roleEntitiesList.get(roleEntitiesList.indexOf(new RoleEntity(RoleName.ROLE_ADMINISTRATOR))));
+        }else if(revokeRoleDto.revokeAdm()){
+            roleEntitiesList.add(new RoleEntity(RoleName.ROLE_ADMINISTRATOR));
+        }
+        existingUser.setRoles(roleEntitiesList);
+        return ResponseUtil.createSuccessResponse("Cargo atualizado com sucesso !!",HttpStatus.OK);
+    }
 }

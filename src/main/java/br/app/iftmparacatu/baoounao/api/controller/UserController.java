@@ -5,6 +5,7 @@ import br.app.iftmparacatu.baoounao.domain.dtos.input.LoginUserDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.input.UpdateUserDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.PaginatedUsersResponse;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryJwtTokenDto;
+import br.app.iftmparacatu.baoounao.domain.dtos.output.RevokeRoleDto;
 import br.app.iftmparacatu.baoounao.domain.model.UserEntity;
 import br.app.iftmparacatu.baoounao.domain.repository.UserRepository;
 import br.app.iftmparacatu.baoounao.domain.services.UserService;
@@ -13,9 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/user")
@@ -78,9 +76,12 @@ public class UserController {
 
     @PatchMapping("/email/senha/{token}")
     public ResponseEntity<Object> receberSenha(@PathVariable String token, @RequestBody  @Valid UpdateUserDto updateUserDto) {
-
         return  userService.trocarSenha(token,updateUserDto);
+    }
 
+    @PatchMapping("/role/revoke-administrator")
+    public ResponseEntity<Object> revokeAdministrator(@Valid RevokeRoleDto revokeRoleDto,@PathVariable Long userID) {
+        return userService.revokeAdministrator(userID,revokeRoleDto);
     }
 }
 

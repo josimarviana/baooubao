@@ -38,6 +38,7 @@ public class SecurityConfig {
             "/cycle",
             "/category",
             "/proposal/adm/moderate/**",
+            "/user/role/revoke-administrator/**",
             "/user/filter",
             "/proposal/adm"
     };
