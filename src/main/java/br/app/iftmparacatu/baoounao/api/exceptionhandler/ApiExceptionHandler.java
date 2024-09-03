@@ -48,8 +48,8 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(value = InvalidLoginException.class)
-    public ResponseEntity<?> handleInvalidLoginException( EmailSendingException e, WebRequest request){
-        return handleExceptionInternal(e, e.getMessage(), new HttpHeaders(), HttpStatus.UNAUTHORIZED,request);
+    public ResponseEntity<?> handleInvalidLoginException( InvalidLoginException e, WebRequest request){
+        return handleExceptionInternal(e, e.getMessage(), new HttpHeaders(), HttpStatus.BAD_REQUEST,request);
     }
 
     @ExceptionHandler(Exception.class)

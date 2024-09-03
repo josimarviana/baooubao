@@ -20,6 +20,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +28,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -94,16 +96,13 @@ public class UserService {
         } catch (BadCredentialsException e) {
             throw new InvalidLoginException("Email ou senha incorretos");
 
-        } catch (UsernameNotFoundException e) {
-            throw new EntityNotFoundException("Email não encontrado");
-
-        } catch (Exception e) {
-            throw new InvalidLoginException("Erro ao tentar realizar o login");
+        } catch (InternalAuthenticationServiceException e) {
+            throw new EntityNotFoundException("Email ou senha incorretos");
         }
     }
 
     public void createUser(CreateUserDto createUserDto) {
-
+        try {
         if (isValidDomainAndType(createUserDto)) {
             UserEntity newUser = UserEntity.builder()
                     .email(createUserDto.email())
@@ -113,13 +112,15 @@ public class UserService {
                     .roles(List.of(roleRepository.findByName(RoleName.ROLE_USER)))
                     .build();
             userRepository.save(newUser);
-            try {
-                emailService.enviarEmailDeConfirmacao(createUserDto.email(), createUserDto.name(), confirmationTokenService.salvar(newUser,urlConfirmationEmail));
-            } catch (MessagingException e) {
-                throw new EmailSendingException("Erro ao enviar e-mail de confirmação");
-            }
-        } else throw new InvalidDomainException("Domínio não é válido");
 
+                emailService.enviarEmailDeConfirmacao(createUserDto.email(), createUserDto.name(), confirmationTokenService.salvar(newUser,urlConfirmationEmail));
+
+        } else throw new InvalidDomainException("Domínio não é válido");
+        } catch (MessagingException e) {
+            throw new EmailSendingException("Erro ao enviar e-mail de confirmação");
+        }catch (DataIntegrityViolationException e) {
+            throw new NotAllowedOperation("Email ja cadastrado!");
+        }
     }
 
     public ResponseEntity<Object> validateUser(String token) {
