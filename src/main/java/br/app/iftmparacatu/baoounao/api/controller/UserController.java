@@ -5,7 +5,7 @@ import br.app.iftmparacatu.baoounao.domain.dtos.input.LoginUserDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.input.UpdateUserDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.PaginatedUsersResponse;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryJwtTokenDto;
-import br.app.iftmparacatu.baoounao.domain.dtos.output.RevokeRoleDto;
+import br.app.iftmparacatu.baoounao.domain.dtos.input.RevokeRoleDto;
 import br.app.iftmparacatu.baoounao.domain.model.UserEntity;
 import br.app.iftmparacatu.baoounao.domain.repository.UserRepository;
 import br.app.iftmparacatu.baoounao.domain.services.UserService;
@@ -79,8 +79,8 @@ public class UserController {
         return  userService.trocarSenha(token,updateUserDto);
     }
 
-    @PatchMapping("/role/revoke-administrator/{userID}")
-    public ResponseEntity<Object> revokeAdministrator(RevokeRoleDto revokeRoleDto,@PathVariable Long userID) {
+    @PatchMapping("/role/revoke-adm/{userID}")
+    public ResponseEntity<Object> revokeAdministrator(@PathVariable Long userID,@RequestBody @Valid RevokeRoleDto revokeRoleDto) {
         return userService.revokeAdministrator(userID,revokeRoleDto);
     }
 }

@@ -1,5 +1,7 @@
-package br.app.iftmparacatu.baoounao.domain.dtos.output;
+package br.app.iftmparacatu.baoounao.domain.dtos.input;
+
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
 @Builder
-public record RevokeRoleDto(Boolean revokeAdm) { }
+public record RevokeRoleDto(@NotNull Boolean revoke) { }

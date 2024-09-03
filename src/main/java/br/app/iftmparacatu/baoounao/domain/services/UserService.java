@@ -5,6 +5,7 @@ import br.app.iftmparacatu.baoounao.api.exception.*;
 import br.app.iftmparacatu.baoounao.config.SecurityConfig;
 import br.app.iftmparacatu.baoounao.domain.dtos.input.CreateUserDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.input.LoginUserDto;
+import br.app.iftmparacatu.baoounao.domain.dtos.input.RevokeRoleDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.input.UpdateUserDto;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.*;
 import br.app.iftmparacatu.baoounao.domain.enums.RoleName;
@@ -31,7 +32,6 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
@@ -255,17 +255,18 @@ public class UserService {
         }else throw new RuntimeException("As senhas não batem!");
     }
 
-    public ResponseEntity<Object> revokeAdministrator(Long userId,RevokeRoleDto revokeRoleDto) {
+    public ResponseEntity<Object> revokeAdministrator(Long userId, RevokeRoleDto revokeRoleDto) {
         UserEntity existingUser = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado!"));
         List<RoleEntity> roleEntitiesList = existingUser.getRoles();
 
-        if (revokeRoleDto.revokeAdm() && roleEntitiesList.contains(new RoleEntity(RoleName.ROLE_ADMINISTRATOR))){
+        if (revokeRoleDto.revoke() && roleEntitiesList.contains(new RoleEntity(RoleName.ROLE_ADMINISTRATOR))){
             roleEntitiesList.remove(roleEntitiesList.get(roleEntitiesList.indexOf(new RoleEntity(RoleName.ROLE_ADMINISTRATOR))));
-        }else if(!revokeRoleDto.revokeAdm()){
-            roleEntitiesList.add(new RoleEntity(RoleName.ROLE_ADMINISTRATOR));
+        }else if(!revokeRoleDto.revoke() && !roleEntitiesList.contains(new RoleEntity(RoleName.ROLE_ADMINISTRATOR))){
+            roleEntitiesList.add(roleRepository.findByName(RoleName.ROLE_ADMINISTRATOR));
         }
         existingUser.setRoles(roleEntitiesList);
+        userRepository.save(existingUser);
         return ResponseUtil.createSuccessResponse("Cargo atualizado com sucesso !!",HttpStatus.OK);
     }
 }
