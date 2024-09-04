@@ -1,11 +1,8 @@
 package br.app.iftmparacatu.baoounao.api.controller;
 
-import br.app.iftmparacatu.baoounao.domain.dtos.input.CreateUserDto;
-import br.app.iftmparacatu.baoounao.domain.dtos.input.LoginUserDto;
-import br.app.iftmparacatu.baoounao.domain.dtos.input.UpdateUserDto;
+import br.app.iftmparacatu.baoounao.domain.dtos.input.*;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.PaginatedUsersResponse;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.RecoveryJwtTokenDto;
-import br.app.iftmparacatu.baoounao.domain.dtos.input.RevokeRoleDto;
 import br.app.iftmparacatu.baoounao.domain.model.UserEntity;
 import br.app.iftmparacatu.baoounao.domain.repository.UserRepository;
 import br.app.iftmparacatu.baoounao.domain.services.UserService;
@@ -57,8 +54,8 @@ public class UserController {
     }
 
     @PatchMapping("/{userID}")
-    public ResponseEntity<Object> updateUser(@PathVariable Long userID, @RequestBody UpdateUserDto userDto) {
-        return userService.updateUser(userID,userDto);
+    public ResponseEntity<Object> updateUser(@PathVariable Long userID, @RequestBody SimpleUpdateUserDto simpleUpdateUserDto) {
+        return userService.updateUser(userID,simpleUpdateUserDto);
 
     }
 
@@ -82,6 +79,11 @@ public class UserController {
     @PatchMapping("/role/revoke-adm/{userID}")
     public ResponseEntity<Object> revokeAdministrator(@PathVariable Long userID,@RequestBody @Valid RevokeRoleDto revokeRoleDto) {
         return userService.revokeAdministrator(userID,revokeRoleDto);
+    }
+
+    @DeleteMapping("/{userID}")
+    public ResponseEntity<Object> delete(@PathVariable Long userID) {
+        return userService.delete(userID);
     }
 }
 
