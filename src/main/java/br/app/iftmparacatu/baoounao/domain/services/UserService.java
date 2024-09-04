@@ -16,6 +16,7 @@ import br.app.iftmparacatu.baoounao.domain.model.UserEntity;
 import br.app.iftmparacatu.baoounao.domain.repository.RoleRepository;
 import br.app.iftmparacatu.baoounao.domain.repository.UserRepository;
 import br.app.iftmparacatu.baoounao.domain.util.ResponseUtil;
+import br.app.iftmparacatu.baoounao.domain.util.SecurityUtil;
 import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
@@ -261,6 +262,10 @@ public class UserService {
         List<RoleEntity> roleEntitiesList = existingUser.getRoles();
 
         if (revokeRoleDto.revoke() && roleEntitiesList.contains(new RoleEntity(RoleName.ROLE_ADMINISTRATOR))){
+            if(SecurityUtil.getAuthenticatedUser().getId().equals(userId)){
+                throw new NotAllowedOperation("Não é permitido remover o próprio cargo de administrador !!");
+            }
+
             roleEntitiesList.remove(roleEntitiesList.get(roleEntitiesList.indexOf(new RoleEntity(RoleName.ROLE_ADMINISTRATOR))));
         }else if(!revokeRoleDto.revoke() && !roleEntitiesList.contains(new RoleEntity(RoleName.ROLE_ADMINISTRATOR))){
             roleEntitiesList.add(roleRepository.findByName(RoleName.ROLE_ADMINISTRATOR));
