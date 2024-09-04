@@ -3,19 +3,18 @@ package br.app.iftmparacatu.baoounao.domain.services;
 
 import br.app.iftmparacatu.baoounao.api.exception.*;
 import br.app.iftmparacatu.baoounao.config.SecurityConfig;
-import br.app.iftmparacatu.baoounao.domain.dtos.input.CreateUserDto;
-import br.app.iftmparacatu.baoounao.domain.dtos.input.LoginUserDto;
-import br.app.iftmparacatu.baoounao.domain.dtos.input.RevokeRoleDto;
-import br.app.iftmparacatu.baoounao.domain.dtos.input.UpdateUserDto;
+import br.app.iftmparacatu.baoounao.domain.dtos.input.*;
 import br.app.iftmparacatu.baoounao.domain.dtos.output.*;
 import br.app.iftmparacatu.baoounao.domain.enums.RoleName;
 import br.app.iftmparacatu.baoounao.domain.enums.UserType;
+import br.app.iftmparacatu.baoounao.domain.model.CategoryEntity;
 import br.app.iftmparacatu.baoounao.domain.model.ConfirmationTokenEntity;
 import br.app.iftmparacatu.baoounao.domain.model.RoleEntity;
 import br.app.iftmparacatu.baoounao.domain.model.UserEntity;
 import br.app.iftmparacatu.baoounao.domain.repository.RoleRepository;
 import br.app.iftmparacatu.baoounao.domain.repository.UserRepository;
 import br.app.iftmparacatu.baoounao.domain.util.ResponseUtil;
+import br.app.iftmparacatu.baoounao.domain.util.SecurityUtil;
 import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
@@ -189,22 +188,15 @@ public class UserService {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    public ResponseEntity<Object> updateUser(Long userId, UpdateUserDto updateUserDto) {
+    public ResponseEntity<Object> updateUser(Long userId, SimpleUpdateUserDto simpleUpdateUserDto) {
         UserEntity existingUser = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado!"));
-        try {
-
-            Optional.ofNullable(updateUserDto.roles()).ifPresent(roles -> {
-                List<RoleEntity> roleEntities = roles.stream()
-                        .map(roleName -> roleRepository.findByName(roleName.getName()))
-                        .collect(Collectors.toList());
-                existingUser.setRoles(roleEntities);
-            });
-        }catch (EntityNotFoundException e) {
-            throw new EntityNotFoundException("Role não encontrada");
-        }
+        Optional.ofNullable(simpleUpdateUserDto.name())
+                .ifPresent(existingUser::setName);
+        Optional.ofNullable(simpleUpdateUserDto.active())
+                .ifPresent(existingUser::setActive);
         userRepository.save(existingUser);
-        return ResponseEntity.ok("Usuário atualizado com sucesso!");
+        return ResponseUtil.createSuccessResponse("Usuário atualizado com sucesso !!",HttpStatus.OK);
     }
 
     public ResponseEntity<String> validateEmail(String email) {
@@ -261,6 +253,10 @@ public class UserService {
         List<RoleEntity> roleEntitiesList = existingUser.getRoles();
 
         if (revokeRoleDto.revoke() && roleEntitiesList.contains(new RoleEntity(RoleName.ROLE_ADMINISTRATOR))){
+            if(SecurityUtil.getAuthenticatedUser().getId().equals(userId)){
+                throw new NotAllowedOperation("Não é permitido remover o próprio cargo de administrador !!");
+            }
+
             roleEntitiesList.remove(roleEntitiesList.get(roleEntitiesList.indexOf(new RoleEntity(RoleName.ROLE_ADMINISTRATOR))));
         }else if(!revokeRoleDto.revoke() && !roleEntitiesList.contains(new RoleEntity(RoleName.ROLE_ADMINISTRATOR))){
             roleEntitiesList.add(roleRepository.findByName(RoleName.ROLE_ADMINISTRATOR));
@@ -268,5 +264,18 @@ public class UserService {
         existingUser.setRoles(roleEntitiesList);
         userRepository.save(existingUser);
         return ResponseUtil.createSuccessResponse("Cargo atualizado com sucesso !!",HttpStatus.OK);
+    }
+
+    public ResponseEntity<Object> delete(Long userID) {
+        UserEntity existingUser = userRepository.findById(userID)
+                .orElseThrow(() -> new br.app.iftmparacatu.baoounao.api.exception.EntityNotFoundException(String.format("Usuário de id %d não encontrada!", userID)));
+
+        if(SecurityUtil.getAuthenticatedUser().getId().equals(userID)){
+            throw new NotAllowedOperation("Não é permitido desativar o próprio usuário !!");
+        }
+
+        existingUser.setActive(false);
+        userRepository.save(existingUser);
+        return ResponseUtil.createSuccessResponse("Usuário desativado com sucesso !!",HttpStatus.NO_CONTENT);
     }
 }
