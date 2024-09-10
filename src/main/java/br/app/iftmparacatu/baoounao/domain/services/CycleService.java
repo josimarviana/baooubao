@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class CycleService {
@@ -64,7 +65,7 @@ public class CycleService {
         }
 
         if (Optional.ofNullable(createCycleDto.startDate()).isPresent() &&
-            Optional.ofNullable(createCycleDto.finishDate()).isPresent() &&
+                Optional.ofNullable(createCycleDto.finishDate()).isPresent() &&
                 createCycleDto.startDate().isAfter(createCycleDto.finishDate())) {
             throw new NotAllowedOperation(String.format(
                     "%s do ciclo não permitido: a data de início (%s) é posterior à data de término (%s).",
@@ -73,7 +74,7 @@ public class CycleService {
                     createCycleDto.finishDate()
             ));
         }
-        if(proposalService.cycleHasProposals(cycleVerification.get()) && !cycleVerification.get().getStartDate().equals(createCycleDto.startDate()) ){
+        if(update && proposalService.cycleHasProposals(cycleVerification.get()) && !cycleVerification.get().getStartDate().equals(createCycleDto.startDate()) ){
             throw new NotAllowedOperation("Não é possível alterar data de inicio, pois já existe propostas para este ciclo !");
         }
     }
@@ -97,10 +98,16 @@ public class CycleService {
                 dateStart, dateEnd
         );
         if(cycleID != 0){
-            overlappingCycleList.remove(overlappingCycleList.indexOf(new CycleEntity(cycleID)));
+            Optional<CycleEntity> cycleEntity = cycleRepository.findByIdAndActiveTrue(cycleID);
+            if(cycleEntity.isPresent()){
+                return overlappingCycleList.stream()
+                        .filter(cycle -> !cycle.get().getId().equals(cycleID))
+                        .collect(Collectors.toList());
+            }
         }
         return overlappingCycleList;
     }
+
     public ResponseEntity<Object> findById(Long cycleID){
         Optional<CycleEntity> cycleEntity = Optional.ofNullable(cycleRepository.findById(cycleID).orElseThrow(() -> new EntityNotFoundException("REGISTRO NÃO ENCONTRADO!")));
         return ResponseEntity.status(HttpStatus.CREATED).body(cycleEntity.get());
