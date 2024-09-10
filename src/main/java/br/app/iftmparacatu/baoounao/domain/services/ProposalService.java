@@ -100,6 +100,10 @@ public class ProposalService {
         if(proposalRepository.countByUserEntityAndCycleEntityAndActiveTrue(SecurityUtil.getAuthenticatedUser(),currentCycle) == PROPOSALS_LIMIT)
             throw new NotAllowedOperation(String.format("O limite de %d propostas foi atingido. Não é possível cadastrar mais propostas.",PROPOSALS_LIMIT));
 
+        if(!(url.startsWith("https://www.youtube.com") || url.startsWith("www.youtube.com") || url.startsWith("youtube.com"))){
+            throw new NotAllowedOperation("Url inválida, serão permitidas somente urls do youtube.com");
+        }
+
         CategoryEntity categoryEntity = categoryRepository.findByTitleAndActiveTrue(category).orElseThrow(() -> new EntityNotFoundException(String.format("Categoria de nome %s não encontrada!", category)));
         try{
             String imageUrl = Optional.ofNullable(image)

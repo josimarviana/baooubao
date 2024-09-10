@@ -36,7 +36,7 @@ public class SecurityConfig {
     };
     public static final String [] ENDPOINTS_ADMIN = {
             "/cycle/**",
-            "/category/**",
+            "/category/filter/**",
             "/proposal/adm/moderate/**",
             "/user/role/revoke-adm/**",
             "/user/filter",
