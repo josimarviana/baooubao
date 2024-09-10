@@ -108,7 +108,7 @@ public class CycleService {
                     createCycleDto.finishDate()
             ));
         }
-        if(proposalService.cycleHasProposals(cycleVerification.get()) && cycleVerification.get().getStartDate() != createCycleDto.startDate()){
+        if(proposalService.cycleHasProposals(cycleVerification.get()) && !cycleVerification.get().getStartDate().equals(createCycleDto.startDate()) ){
             throw new NotAllowedOperation("Não é possível alterar data de inicio, pois já existe propostas para este ciclo !");
         }
     }
