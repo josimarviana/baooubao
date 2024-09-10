@@ -37,6 +37,10 @@ public class CycleEntity {
             active = true;
         }
     }
+
+    public CycleEntity(Long id){
+        this.id = id;
+    }
     @Override
     public String toString() {
         return title;

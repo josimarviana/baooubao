@@ -32,40 +32,6 @@ public class CycleService {
         return cycleRepository.findByStartDateLessThanEqualAndFinishDateGreaterThanEqualAndActiveTrue(date,date);
     }
 
-    private void checkUpdateOrCreateCycle(boolean update, CreateCycleDto createCycleDto){
-        String operation = update ? "Atualização" : "Cadastro";
-        List<Optional<CycleEntity>> overlappingCycleList = findOverlappingCycle(createCycleDto.startDate(),createCycleDto.finishDate());
-        Optional<CycleEntity> checkCycle = cycleRepository.findByTitleAndActiveTrue(createCycleDto.title());
-
-        if (checkCycle.isPresent()){
-            throw new NotAllowedOperation(String.format("Ciclo %s já cadastrado !!",createCycleDto.title()));
-        }
-
-
-
-
-        if (!overlappingCycleList.isEmpty()) {
-            List<String> cycleTitles = overlappingCycleList.stream()
-                    .filter(Optional::isPresent) // Filtra apenas os Optionals que contêm valores
-                    .map(Optional::get) // Obtém o valor do Optional
-                    .map(CycleEntity::toString) // Converte para String usando o método toString da classe CycleEntity
-                    .toList();
-            throw new NotAllowedOperation(String.format(
-                    "%s do ciclo não permitido: já existe um ou mais ciclos em andamento para a data atual. Ciclos: %s",
-                    operation,
-                    cycleTitles));
-        }
-
-        if (createCycleDto.startDate().isAfter(createCycleDto.finishDate())) {
-            throw new NotAllowedOperation(String.format(
-                    "%s do ciclo não permitido: a data de início (%s) é posterior à data de término (%s).",
-                    operation,
-                    createCycleDto.startDate(),
-                    createCycleDto.finishDate()
-            ));
-        }
-    }
-
     private void checkUpdateOrCreateCycle(Long cycleID,boolean update, CreateCycleDto createCycleDto){
         String operation = update ? "Atualização" : "Cadastro";
         List<Optional<CycleEntity>> overlappingCycleList = new ArrayList<>();
@@ -75,18 +41,17 @@ public class CycleService {
         if (startDate != null || finishDate != null) {
             LocalDate effectiveStartDate = (startDate != null) ? startDate : finishDate;
             LocalDate effectiveFinishDate = (finishDate != null) ? finishDate : startDate;
-            overlappingCycleList = findOverlappingCycle(effectiveStartDate, effectiveFinishDate);
+            overlappingCycleList = findOverlappingCycle(effectiveStartDate, effectiveFinishDate,cycleID);
         }
-
 
         Optional<CycleEntity> checkCycle = cycleRepository.findByTitleAndActiveTrue(createCycleDto.title());
 
-        if (checkCycle.isPresent() && cycleID != checkCycle.get().getId()){
+        if (checkCycle.isPresent() &&  (!update || cycleID != checkCycle.get().getId())){
             throw new NotAllowedOperation(String.format("Ciclo %s já cadastrado !!",createCycleDto.title()));
         }
         Optional<CycleEntity> cycleVerification = cycleRepository.findByIdAndActiveTrue(cycleID);
 
-        if (!overlappingCycleList.isEmpty() && (!overlappingCycleList.contains(cycleVerification) && overlappingCycleList.size() > 1)) {
+        if (!overlappingCycleList.isEmpty()) {
             List<String> cycleTitles = overlappingCycleList.stream()
                     .filter(Optional::isPresent) // Filtra apenas os Optionals que contêm valores
                     .map(Optional::get) // Obtém o valor do Optional
@@ -114,7 +79,7 @@ public class CycleService {
     }
 
     public ResponseEntity<Object> save(CreateCycleDto createCycleDto){
-        checkUpdateOrCreateCycle(false,createCycleDto);
+        checkUpdateOrCreateCycle(0L,false,createCycleDto);
         CycleEntity newCycle = CycleEntity.builder()
                 .title(createCycleDto.title())
                 .startDate(createCycleDto.startDate())
@@ -124,13 +89,17 @@ public class CycleService {
         return ResponseUtil.createSuccessResponse("Ciclo cadastrado com sucesso !!",HttpStatus.CREATED);
     }
 
-    public List<Optional<CycleEntity>> findOverlappingCycle(LocalDate dateStart, LocalDate dateEnd) {
-        return cycleRepository.findByStartDateLessThanEqualAndActiveTrueAndFinishDateGreaterThanEqualAndActiveTrueOrStartDateBetweenAndActiveTrueOrFinishDateBetweenAndActiveTrue(
+    public List<Optional<CycleEntity>> findOverlappingCycle(LocalDate dateStart, LocalDate dateEnd,Long cycleID) {
+        List<Optional<CycleEntity>> overlappingCycleList = cycleRepository.findByStartDateLessThanEqualAndActiveTrueAndFinishDateGreaterThanEqualAndActiveTrueOrStartDateBetweenAndActiveTrueOrFinishDateBetweenAndActiveTrue(
                 dateEnd,
                 dateStart,
                 dateStart, dateEnd,
                 dateStart, dateEnd
         );
+        if(cycleID != 0){
+            overlappingCycleList.remove(overlappingCycleList.indexOf(new CycleEntity(cycleID)));
+        }
+        return overlappingCycleList;
     }
     public ResponseEntity<Object> findById(Long cycleID){
         Optional<CycleEntity> cycleEntity = Optional.ofNullable(cycleRepository.findById(cycleID).orElseThrow(() -> new EntityNotFoundException("REGISTRO NÃO ENCONTRADO!")));
