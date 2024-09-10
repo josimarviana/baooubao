@@ -86,7 +86,7 @@ public class CycleService {
         }
         Optional<CycleEntity> cycleVerification = cycleRepository.findByIdAndActiveTrue(cycleID);
 
-        if (!overlappingCycleList.isEmpty() && (!overlappingCycleList.contains(cycleVerification))) {
+        if (!overlappingCycleList.isEmpty() && (!overlappingCycleList.contains(cycleVerification) && overlappingCycleList.size() > 1)) {
             List<String> cycleTitles = overlappingCycleList.stream()
                     .filter(Optional::isPresent) // Filtra apenas os Optionals que contêm valores
                     .map(Optional::get) // Obtém o valor do Optional
