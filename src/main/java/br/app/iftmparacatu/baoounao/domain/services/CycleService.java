@@ -82,8 +82,8 @@ public class CycleService {
         if (checkCycle.isPresent() && cycleID != checkCycle.get().getId()){
             throw new NotAllowedOperation(String.format("Ciclo %s já cadastrado !!",createCycleDto.title()));
         }
-
-        if (!overlappingCycleList.isEmpty()) {
+        Optional<CycleEntity> cycleVerification = cycleRepository.findByIdAndActiveTrue(cycleID);
+        if (!overlappingCycleList.isEmpty() || ( update && cycleVerification.isPresent() && cycleVerification.get().getId() != cycleID)) {
             List<String> cycleTitles = overlappingCycleList.stream()
                     .filter(Optional::isPresent) // Filtra apenas os Optionals que contêm valores
                     .map(Optional::get) // Obtém o valor do Optional
