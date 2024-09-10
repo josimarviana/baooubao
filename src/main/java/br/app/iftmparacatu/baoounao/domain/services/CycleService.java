@@ -42,6 +42,8 @@ public class CycleService {
         }
 
 
+
+
         if (!overlappingCycleList.isEmpty()) {
             List<String> cycleTitles = overlappingCycleList.stream()
                     .filter(Optional::isPresent) // Filtra apenas os Optionals que contêm valores
@@ -105,6 +107,9 @@ public class CycleService {
                     createCycleDto.startDate(),
                     createCycleDto.finishDate()
             ));
+        }
+        if(proposalService.cycleHasProposals(cycleVerification.get()) && cycleVerification.get().getStartDate() != createCycleDto.startDate()){
+            throw new NotAllowedOperation("Não é possível alterar data de inicio, pois já existe propostas para este ciclo !");
         }
     }
 
