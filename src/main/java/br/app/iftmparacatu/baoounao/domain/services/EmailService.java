@@ -22,7 +22,7 @@ public class EmailService {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-        helper.setFrom("baoounaoiftm@hotmail.com"); // Certifique-se de usar o mesmo e-mail autenticado
+        helper.setFrom("naoresponda@iftmparacatu.app.br"); // Certifique-se de usar o mesmo e-mail autenticado
         helper.setTo(to);
         helper.setSubject(subject);
         helper.setText(body, true); // O segundo parâmetro "true" indica que o conteúdo é HTML
